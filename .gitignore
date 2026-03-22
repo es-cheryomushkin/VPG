@@ -1,6 +1,11 @@
 __pycache__
 archive
 
+
+# Godot 4+ specific ignores
+.godot/
+android/
+
 .plastic
 .vs
 .vsconfig
