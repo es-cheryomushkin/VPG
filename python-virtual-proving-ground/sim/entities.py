@@ -1,0 +1,124 @@
+# entities.py
+import math
+
+# =========================
+# BASE ENTITY
+# =========================
+class BaseEntity:
+
+    def __init__(self, data):
+        self.type = data["type"]
+        self.mass = data.get("mass", 1)
+        self.x = data["x"]
+        self.y = data["y"]
+        self.vx = data.get("vx", 0)
+        self.vy = data.get("vy", 0)
+        self.heading = data.get("heading", 0)
+        self.radius = 8
+        self.front_offset = 8  # default for circles
+        self.rear_offset = 8
+        self.speed = math.hypot(self.vx, self.vy)
+    
+        self.length = 10
+        self.width = 10
+        self.wheelbase = 10
+        self.steer = 0
+
+    def update(self, *args, **kwargs):
+        # base entity does nothing
+        pass
+
+    def circles(self):
+        # default circle for collision
+        return [(self.x, self.y, self.radius)]
+    
+    def get_velocity(self):
+        return (math.cos(self.heading) * self.speed, math.sin(self.heading) * self.speed)
+
+    def set_velocity(self, vx, vy):
+        self.speed = math.hypot(vx, vy)
+        if self.speed > 0:
+            self.heading = math.atan2(vy, vx)
+
+    def circles(self):
+        return [(self.x, self.y, self.radius)]
+
+
+# =========================
+# CAR
+# =========================
+class Car(BaseEntity):
+
+    def __init__(self, data):
+        super().__init__(data)
+        self.speed = math.hypot(self.vx, self.vy)
+
+        # geometry
+        self.length = 60
+        self.width = 30
+        self.wheelbase = 40
+
+        # collision
+        self.radius = 15
+        self.front_offset = 15
+        self.rear_offset = 15
+
+        # control state
+        self.steer = 0
+
+    def update(self, throttle, brake, steer, dt):
+        # steering smoothing
+        self.steer += (steer - self.steer) * 5 * dt
+
+        # acceleration
+        accel = 200 * throttle - 300 * brake
+        self.speed += accel * dt
+
+        # drag
+        self.speed *= 0.995
+
+        # turning
+        if abs(self.steer) > 0.01:
+            turn_radius = self.wheelbase / math.tan(self.steer)
+            angular_velocity = self.speed / turn_radius
+        else:
+            angular_velocity = 0
+
+        self.heading += angular_velocity * dt
+
+        # update position
+        self.x += math.cos(self.heading) * self.speed * dt
+        self.y += math.sin(self.heading) * self.speed * dt
+
+    def get_velocity(self):
+        return (math.cos(self.heading) * self.speed, math.sin(self.heading) * self.speed)
+
+    def set_velocity(self, vx, vy):
+        self.speed = math.hypot(vx, vy)
+        if self.speed > 0:
+            self.heading = math.atan2(vy, vx)
+
+    def circles(self):
+        dx = math.cos(self.heading) * self.front_offset
+        dy = math.sin(self.heading) * self.front_offset
+        return [
+            (self.x + dx, self.y + dy, self.radius),
+            (self.x - dx, self.y - dy, self.radius)
+        ]
+
+
+# =========================
+# PEDESTRIAN
+# =========================
+class Pedestrian(BaseEntity):
+
+    def __init__(self, data):
+        super().__init__(data)
+        self.radius = 8
+
+    def update(self, dt):
+        self.x += self.vx * dt
+        self.y += self.vy * dt
+
+    def circles(self):
+        return [(self.x, self.y, self.radius)]
