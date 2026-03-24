@@ -29,7 +29,7 @@ script = ExtResource("1_uhqqe")
 [node name="Car" type="CharacterBody2D" parent="." unique_id=490817088]
 position = Vector2(-180.99997, 75)
 scale = Vector2(0.8, 0.8)
-up_direction = Vector2(0.9999875, -0.0049999375)
+up_direction = Vector2(0.99998754, -0.004999938)
 script = ExtResource("2_ia1lp")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Car" unique_id=768118589]

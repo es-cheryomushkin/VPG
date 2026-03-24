@@ -3,7 +3,7 @@ extends CharacterBody2D
 # Параметры из ТЗ: физическая модель движения 
 @export var max_speed = 400.0
 @export var steering_speed = 4.0  # Скорость поворота
-@export var braking_force = 10.0  # Сила торможения
+@export var braking_force = 50.0  # Сила торможения
 
 var current_speed = 0.0
 
@@ -44,6 +44,6 @@ func check_safety_metrics(delta):
 		print("Дистанция: ", int(distance), " | TTC: ", snapped(ttc, 0.1))
 		
 		# Реализация предиктивного предотвращения (п. 3.3 ТЗ) [cite: 33, 34]
-		if ttc < 1.0: # Если до удара меньше 1 секунды
-			current_speed = move_toward(current_speed, 0, braking_force * 500 * delta)
-			print("СИСТЕМА АКТИВНОЙ БЕЗОПАСНОСТИ: ТОРМОЖЕНИЕ")
+		#if ttc < 1.0: # Если до удара меньше 1 секунды
+			#current_speed = move_toward(current_speed, 0, braking_force * 500 * delta)
+			#print("СИСТЕМА АКТИВНОЙ БЕЗОПАСНОСТИ: ТОРМОЖЕНИЕ")
