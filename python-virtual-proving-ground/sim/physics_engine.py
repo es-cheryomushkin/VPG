@@ -1,62 +1,86 @@
 # physics_engine.py
 import math
 
-# Movement
-MULTIPLIER = 10.0
-FRICTION = 0.998
+# ==========================
+# PHYSICS CONSTANTS
+# ==========================
+MULTIPLIER = 10.0      # Scaling factor for motion, brings speed units to metres/second
+FRICTION = 0.998       # Global friction for velocity damping
 
-# Impact
-DAMPING = 0.2
-FRICTION_TANGENT = 1
-IMPACT_DAMPING = 0.8  # 0.0 = no loss, 1.0 = full stop
-
+IMPACT_DAMPING = 0.8   # Fraction of normal velocity lost during impact
+FRICTION_TANGENT = 1   # Tangential friction (not fully used)
+DAMPING = 0.2          # Unused general damping constant
 
 
 class PhysicsEngine:
-
+    """
+    Simple physics engine handling motion and collisions for cars and pedestrians.
+    """
     def __init__(self, entities):
         self.entities = entities
         self.time = 0
+        self.last_collision = None
 
+    # ==========================
+    # MAIN STEP
+    # ==========================
     def step(self, dt):
+        """
+        Advance simulation by dt seconds.
+        Handles collisions first, then moves all entities and applies friction.
+        """
         self.handle_collisions()
-        for e in self.entities:
-            if e.type == "car":
-                vx, vy = e.get_velocity()
-            else:
-                vx, vy = e.vx, e.vy
+        self.update_positions(dt)
+        self.time += dt
 
+    # ==========================
+    # POSITION UPDATE
+    # ==========================
+    def update_positions(self, dt):
+        """
+        Move entities based on their velocities and apply friction.
+        """
+        for e in self.entities:
+            vx, vy = e.get_velocity() if e.type == "car" else (e.vx, e.vy)
+
+            # Update position
             e.x += vx * dt * MULTIPLIER
             e.y += vy * dt * MULTIPLIER
 
-            # friction
+            # Apply friction
             vx *= FRICTION
             vy *= FRICTION
 
+            # Set updated velocity
             if e.type == "car":
                 e.set_velocity(vx, vy)
             else:
-                e.vx = vx
-                e.vy = vy
+                e.vx, e.vy = vx, vy
 
-        self.time += dt
-
+    # ==========================
+    # COLLISION HANDLING
+    # ==========================
     def handle_collisions(self):
+        """
+        Check all entity pairs for collisions and apply response.
+        """
         n = len(self.entities)
         for i in range(n):
-            for j in range(i+1, n):
+            for j in range(i + 1, n):
                 self.collide(self.entities[i], self.entities[j])
 
     def collide(self, a, b):
-        ac = a.circles()
-        bc = b.circles()
+        """
+        Handle collision between two entities using circle approximation.
+        """
+        a_circles = a.circles()
+        b_circles = b.circles()
 
-        ma = a.mass / len(ac)
-        mb = b.mass / len(bc)
+        mass_a = a.mass / len(a_circles)
+        mass_b = b.mass / len(b_circles)
 
-        for ax, ay, ar in ac:
-            for bx, by, br in bc:
-
+        for ax, ay, ar in a_circles:
+            for bx, by, br in b_circles:
                 dx = bx - ax
                 dy = by - ay
                 dist = math.hypot(dx, dy)
@@ -68,111 +92,111 @@ class PhysicsEngine:
                 if overlap <= 0:
                     continue
 
-                # ===== NORMAL =====
-                nx = dx / dist
-                ny = dy / dist
+                # ===== NORMAL VECTOR =====
+                nx, ny = dx / dist, dy / dist
 
-                # ===== VELOCITIES =====
-                avx, avy = (a.get_velocity() if a.type=="car" else (a.vx, a.vy))
-                bvx, bvy = (b.get_velocity() if b.type=="car" else (b.vx, b.vy))
+                # ===== RELATIVE VELOCITY =====
+                avx, avy = a.get_velocity() if a.type == "car" else (a.vx, a.vy)
+                bvx, bvy = b.get_velocity() if b.type == "car" else (b.vx, b.vy)
 
                 relvx = avx - bvx
                 relvy = avy - bvy
+                rel_normal = relvx * nx + relvy * ny
 
-                rel = relvx * nx + relvy * ny
-
-                if rel > 2.0:
-                    continue
-
-                impact_speed = abs(rel)
+                if rel_normal > 2.0:
+                    continue  # Skip fast separating entities
 
                 # ===== POSITION CORRECTION =====
-                percent = 0.8
-                slop = 0.01
+                self._position_correction(a, b, nx, ny, overlap, mass_a, mass_b)
 
-                correction = max(overlap - slop, 0) / (1/ma + 1/mb) * percent
+                # ===== VELOCITY RESPONSE =====
+                self._velocity_response(a, b, nx, ny, avx, avy, bvx, bvy, mass_a, mass_b, rel_normal)
 
-                cx = correction * nx
-                cy = correction * ny
+    # ==========================
+    # POSITION CORRECTION
+    # ==========================
+    def _position_correction(self, a, b, nx, ny, overlap, ma, mb):
+        """
+        Push entities apart based on overlap.
+        """
+        percent = 0.8  # usually 20% slack
+        slop = 0.01    # small tolerance
 
-                a.x -= cx / ma
-                a.y -= cy / ma
-                b.x += cx / mb
-                b.y += cy / mb
+        correction = max(overlap - slop, 0) / (1 / ma + 1 / mb) * percent
+        cx = correction * nx
+        cy = correction * ny
 
-                # ===== SPLIT VELOCITY =====
+        a.x -= cx / ma
+        a.y -= cy / ma
+        b.x += cx / mb
+        b.y += cy / mb
 
-                # normal
-                an = avx * nx + avy * ny
-                bn = bvx * nx + bvy * ny
+    # ==========================
+    # VELOCITY RESPONSE
+    # ==========================
+    def _velocity_response(self, a, b, nx, ny, avx, avy, bvx, bvy, ma, mb, rel_normal):
+        """
+        Apply collision response including momentum transfer, damping, and small deflection.
+        """
+        # Skip separating
+        if rel_normal > 0:
+            return
 
-                anx = nx * an
-                any = ny * an
+        # ===== RESTITUTION (bounciness) =====
+        restitution = 0.1  # 0 = no bounce, 1 = perfect bounce
 
-                bnx = nx * bn
-                bny = ny * bn
+        # ===== IMPULSE =====
+        j = -(1 + restitution) * rel_normal
+        j /= (1 / ma + 1 / mb)
 
-                # tangent
-                atx = avx - anx
-                aty = avy - any
+        ix = j * nx
+        iy = j * ny
 
-                btx = bvx - bnx
-                bty = bvy - bny
+        # Apply impulse
+        avx += ix / ma
+        avy += iy / ma
 
-                # ===== CRASH RESPONSE =====
+        bvx -= ix / mb
+        bvy -= iy / mb
 
-                head_on = abs(rel) / (math.hypot(relvx, relvy) + 1e-5)
+        # ===== TANGENTIAL FRICTION =====
+        tx = -ny
+        ty = nx
 
-                kill = IMPACT_DAMPING * head_on
+        rel_t = (avx - bvx) * tx + (avy - bvy) * ty
 
-                # kill normal velocity
-                an *= (1 - kill)
-                bn *= (1 - kill)
+        friction = 0.5  # tune this
 
-                # ===== MOMENTUM TRANSFER (important fix) =====
-                total_m = ma + mb
+        jt = -rel_t
+        jt /= (1 / ma + 1 / mb)
+        jt *= friction
 
-                new_an = (ma * an + mb * bn) / total_m
-                new_bn = new_an
+        fx = jt * tx
+        fy = jt * ty
 
-                anx = nx * new_an
-                any = ny * new_an
+        avx += fx / ma
+        avy += fy / ma
 
-                bnx = nx * new_bn
-                bny = ny * new_bn
+        bvx -= fx / mb
+        bvy -= fy / mb
 
-                # ===== SMALL DEFLECTION =====
-                deflect = 0.15 * impact_speed
+        # ===== APPLY =====
+        if a.type == "car":
+            a.set_velocity(avx, avy)
+        else:
+            a.vx, a.vy = avx, avy
 
-                anx -= ny * deflect / ma
-                any += nx * deflect / ma
+        if b.type == "car":
+            b.set_velocity(bvx, bvy)
+        else:
+            b.vx, b.vy = bvx, bvy
 
-                bnx += ny * deflect / mb
-                bny -= nx * deflect / mb
+        # ===== LOG =====
+        impact_speed = abs(rel_normal)
+        crash_energy = 0.5 * (ma + mb) * (impact_speed ** 2)
 
-                # ===== RECOMBINE =====
-                new_avx = anx + atx
-                new_avy = any + aty
-
-                new_bvx = bnx + btx
-                new_bvy = bny + bty
-
-                # ===== APPLY =====
-                if a.type == "car":
-                    a.set_velocity(new_avx, new_avy)
-                else:
-                    a.vx, a.vy = new_avx, new_avy
-
-                if b.type == "car":
-                    b.set_velocity(new_bvx, new_bvy)
-                else:
-                    b.vx, b.vy = new_bvx, new_bvy
-
-                # ===== LOG =====
-                crash_energy = 0.5 * (ma + mb) * (impact_speed ** 2)
-                print("Collision at:", ax, ay)
-                self.last_collision = {
-                    "speed": impact_speed,
-                    "energy": crash_energy,
-                    "entities": (a, b)
-                }
+        self.last_collision = {
+            "speed": impact_speed,
+            "energy": crash_energy,
+            "entities": (a, b)
+        }
