@@ -54,12 +54,12 @@ class Car(BaseEntity):
         self.speed = math.hypot(self.vx, self.vy)
 
         # geometry
-        self.length = 60
-        self.width = 30
+        self.length = 50
+        self.width = 20
         self.wheelbase = 40
 
         # collision
-        self.radius = 15
+        self.radius = 20
         self.front_offset = 15
         self.rear_offset = 15
 

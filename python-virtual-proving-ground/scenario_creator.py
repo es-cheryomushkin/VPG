@@ -1,183 +1,194 @@
-import pygame
+import pygame  # type: ignore
 import json
 import math
 import os
 from datetime import datetime
 
+from sim.draw import draw
+from sim.entities import Car, Pedestrian
+
 pygame.init()
 
-WIDTH, HEIGHT = 1200, 800
+# ----------------------------
+# Constants / Globals
+# ----------------------------
+WIDTH, HEIGHT = 1200, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 22)
 
 entities = []
-
 current_speed = 0
 current_heading = 0
-
-mode = "car"  # or pedestrian
-
-
-def draw_text(text, x, y):
-    img = font.render(text, True, (255,255,255))
-    screen.blit(img, (x,y))
+mode = "car"  # "car" or "pedestrian"
 
 
+# ----------------------------
+# Scenario Saving
+# ----------------------------
 def save_scenario():
+    """Save the current entities into a JSON scenario file."""
     os.makedirs("scenarios", exist_ok=True)
 
     name = datetime.now().strftime("%Y%m%d_%H%M%S")
     path = f"scenarios/scenario_{name}.json"
 
+    # Convert objects to dicts for saving
+    out = []
+    for e in entities:
+        data = {
+            "type": e.type,
+            "x": e.x,
+            "y": e.y,
+            "vx": getattr(e, "vx", e.get_velocity()[0]),
+            "vy": getattr(e, "vy", e.get_velocity()[1]),
+            "heading": getattr(e, "heading", 0),
+            "mass": getattr(e, "mass", 1),
+        }
+        out.append(data)
+
     with open(path, "w") as f:
-        json.dump(entities, f, indent=2)
+        json.dump(out, f, indent=2)
 
     print("Saved:", path)
 
 
+# ----------------------------
+# Text Rendering
+# ----------------------------
+def draw_text(text, x, y):
+    """Render text on the screen at (x,y)."""
+    img = font.render(text, True, (255, 255, 255))
+    screen.blit(img, (x, y))
+
+
+# ----------------------------
+# Entity Creation
+# ----------------------------
 def create_car(x, y):
-
-    vx = math.cos(current_heading) * current_speed
-    vy = math.sin(current_heading) * current_speed
-
-    return {
-        "type":"car",
-        "x":x,
-        "y":y,
-        "vx":vx,
-        "vy":vy,
-        "heading":current_heading,
-        "mass":1500
+    """Create a Car object at position (x, y) with current speed and heading."""
+    data = {
+        "type": "car",
+        "x": x,
+        "y": y,
+        "vx": math.cos(current_heading) * current_speed,
+        "vy": math.sin(current_heading) * current_speed,
+        "heading": current_heading,
+        "mass": 1500,
     }
+    return Car(data)
 
 
 def create_ped(x, y):
-
-    vx = math.cos(current_heading) * current_speed
-    vy = math.sin(current_heading) * current_speed
-
-    return {
-        "type":"pedestrian",
-        "x":x,
-        "y":y,
-        "vx":vx,
-        "vy":vy,
-        "mass":80
+    """Create a Pedestrian object at position (x, y) with current speed and heading."""
+    data = {
+        "type": "pedestrian",
+        "x": x,
+        "y": y,
+        "vx": math.cos(current_heading) * current_speed,
+        "vy": math.sin(current_heading) * current_speed,
+        "mass": 80,
     }
+    return Pedestrian(data)
 
 
-running = True
-
-while running:
+# ----------------------------
+# Input Handling
+# ----------------------------
+def handle_events():
+    """Process user inputs (keyboard/mouse)."""
+    global running, mode, current_speed, current_heading
 
     for event in pygame.event.get():
-
         if event.type == pygame.QUIT:
             running = False
 
         if event.type == pygame.KEYDOWN:
-
             if event.key == pygame.K_ESCAPE:
                 running = False
-
-            if event.key == pygame.K_TAB:
+            elif event.key == pygame.K_TAB:
                 mode = "pedestrian" if mode == "car" else "car"
-
-            if event.key == pygame.K_BACKQUOTE:
+            elif event.key == pygame.K_BACKQUOTE:
                 save_scenario()
-
-            if event.key == pygame.K_c:
+            elif event.key == pygame.K_c:
                 entities.clear()
-
-            if event.key == pygame.K_DELETE and entities:
+            elif event.key == pygame.K_DELETE and entities:
                 entities.pop()
-
-            if event.key == pygame.K_r:
+            elif event.key == pygame.K_r:
                 current_speed = 0
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-
             x, y = pygame.mouse.get_pos()
-
             if mode == "car":
-                entities.append(create_car(x,y))
-
+                entities.append(create_car(x, y))
             else:
-                entities.append(create_ped(x,y))
+                entities.append(create_ped(x, y))
 
+    # Continuous key press handling for speed/heading
     keys = pygame.key.get_pressed()
+    if keys[pygame.K_PLUS] or keys[pygame.K_KP_PLUS] or keys[pygame.K_EQUALS]: current_speed += 1
+    if keys[pygame.K_MINUS] or keys[pygame.K_KP_MINUS]: current_speed -= 1
+    if keys[pygame.K_w]: current_speed += 0.1
+    if keys[pygame.K_s]: current_speed -= 0.1
+    if keys[pygame.K_q]: current_heading -= 0.05
+    if keys[pygame.K_e]: current_heading += 0.05
+    if keys[pygame.K_a]: current_heading -= 0.01
+    if keys[pygame.K_d]: current_heading += 0.01
 
-    # speed control
-    if keys[pygame.K_w]:
-        current_speed += 0.1
 
-    if keys[pygame.K_s]:
-        current_speed -= 0.1
-
-    # heading control
-    if keys[pygame.K_q]:
-        current_heading -= 0.05
-
-    if keys[pygame.K_e]:
-        current_heading += 0.05
-
-    if keys[pygame.K_a]:
-        current_heading -= 0.01
-
-    if keys[pygame.K_d]:
-        current_heading += 0.01
-
-    screen.fill((20,20,30))
-
-    # draw entities
-    for e in entities:
-
-        if e["type"] == "pedestrian":
-
-            pygame.draw.circle(screen,(0,255,0),(int(e["x"]),int(e["y"])),6)
-
-        if e["type"] == "car":
-
-            rect = pygame.Surface((60,30))
-            rect.fill((200,50,50))
-
-            rotated = pygame.transform.rotate(rect,-math.degrees(e["heading"]))
-            r = rotated.get_rect(center=(e["x"],e["y"]))
-
-            screen.blit(rotated,r)
-
-        # draw velocity arrow
-        vx = e["vx"]
-        vy = e["vy"]
-
-        pygame.draw.line(
-            screen,
-            (255,255,0),
-            (e["x"], e["y"]),
-            (e["x"] + vx*3, e["y"] + vy*3),
-            2
-        )
-
-    # draw preview arrow (for next placement)
+# ----------------------------
+# Preview / UI
+# ----------------------------
+def draw_preview():
+    """Draw the mouse preview arrow for entity placement."""
     mx, my = pygame.mouse.get_pos()
+    px = mx + math.cos(current_heading) * 40
+    py = my + math.sin(current_heading) * 40
+    pygame.draw.line(screen, (100, 200, 255), (mx, my), (px, py), 3)
 
-    px = mx + math.cos(current_heading)*40
-    py = my + math.sin(current_heading)*40
 
-    pygame.draw.line(screen,(100,200,255),(mx,my),(px,py),3)
+def draw_ui():
+    """Draw the editor-specific text overlay."""
+    font_texts = [
+        f"Mode: {mode}",
+        f"Speed: {current_speed:.2f}m/s, ({current_speed*3.6:.1f} km/h)",
+        f"Heading: {math.degrees(current_heading):.1f}",
+        "Left click = place",
+        "TAB = switch mode",
+        "+/- = +/- 1 m/s (3.6 km/h) speed",
+        "W/S = +/- 0.1 m/s (0.36 km/h) speed",
+        "Q/E = 5 degree rotate",
+        "A/D = 1 degree fine rotate",
+        "` (Backquote) = save",
+    ]
+    for i, text in enumerate(font_texts):
+        draw_text(text, 10, 10 + i*20)
 
-    # UI text
-    draw_text(f"Mode: {mode}",10,10)
-    draw_text(f"Speed: {current_speed:.2f}",10,30)
-    draw_text(f"Heading: {math.degrees(current_heading):.1f}",10,50)
 
-    draw_text("Left click = place",10,80)
-    draw_text("TAB = switch mode",10,100)
-    draw_text("W/S = speed",10,120)
-    draw_text("Q/E = rotate",10,140)
-    draw_text("A/D = fine rotate",10,160)
-    draw_text("` (Backquote) = save",10,180)
+# ----------------------------
+# Main Loop
+# ----------------------------
+running = True
+while running:
+    handle_events()
+
+    screen.fill((20, 20, 30))  # background
+
+    # draw entities using centralized draw function
+    draw(
+        screen,
+        entities,
+        ego=None,
+        mode="manual",
+        font=font,
+        episode_time=0.0,
+        max_time=0.0,
+        scenario_index=0,
+        show_legend=False
+    )
+
+    draw_preview()
+    draw_ui()
 
     pygame.display.flip()
     clock.tick(60)
