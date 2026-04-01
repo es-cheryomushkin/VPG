@@ -10,7 +10,7 @@ android/
 .vs
 .vsconfig
 ProjectSettings
-Packages
+virtual-proving-ground/Packages
 *.meta
 
 [Ll]ibrary/
@@ -108,29 +108,34 @@ Desktop.ini
 
 
 # ====================
-# Unity
+# Unity (только для папки autonomous-driving-simulator)
 # ====================
-# Основные папки
-[Ll]ibrary/
-[Tt]emp/
-[Oo]bj/
-[Bb]uild/
-[Bb]uilds/
-[Ll]ogs/
-[Uu]ser[Ss]ettings/
+# Основные папки Unity
+autonomous-driving-simulator/[Ll]ibrary/
+autonomous-driving-simulator/[Tt]emp/
+autonomous-driving-simulator/[Oo]bj/
+autonomous-driving-simulator/[Bb]uild/
+autonomous-driving-simulator/[Bb]uilds/
+autonomous-driving-simulator/[Ll]ogs/
+autonomous-driving-simulator/[Uu]ser[Ss]ettings/
+
+# Пакеты Unity: игнорируем кэш
+autonomous-driving-simulator/Packages/packages-lock.json
+autonomous-driving-simulator/[Ll]ibrary/PackageCache/
+autonomous-driving-simulator/Packages/*.private.*
 
 # Файлы Visual Studio
-*.csproj
-*.unityproj
-*.sln
-*.suo
-*.user
-*.userprefs
-*.pidb
-*.booproj
-*.svd
-*.pdb
-*.mdb
-*.opendb
-*.VC.db
-*.slnx
+autonomous-driving-simulator/*.csproj
+autonomous-driving-simulator/*.unityproj
+autonomous-driving-simulator/*.sln
+autonomous-driving-simulator/*.suo
+autonomous-driving-simulator/*.user
+autonomous-driving-simulator/*.userprefs
+autonomous-driving-simulator/*.pidb
+autonomous-driving-simulator/*.booproj
+autonomous-driving-simulator/*.svd
+autonomous-driving-simulator/*.pdb
+autonomous-driving-simulator/*.mdb
+autonomous-driving-simulator/*.opendb
+autonomous-driving-simulator/*.VC.db
+autonomous-driving-simulator/*.slnx
