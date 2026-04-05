@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b7suxeqjcrct6"]
 
-[ext_resource type="Script" uid="uid://cjearc0sbpxu1" path="res://second_scene/overhead_car_body_2d.gd" id="1_350uq"]
+[ext_resource type="Script" uid="uid://cjearc0sbpxu1" path="res://second_scene/player_car.gd" id="1_350uq"]
 [ext_resource type="Texture2D" uid="uid://gybswtdpg1ir" path="res://second_scene/road_accets/roadCrossing_NE.png" id="2_350uq"]
 [ext_resource type="Texture2D" uid="uid://bg04tjybwinb4" path="res://second_scene/road_accets/roadPitStraight_NE.png" id="3_nqgbx"]
 [ext_resource type="Texture2D" uid="uid://bkk01awck28fb" path="res://second_scene/road_accets/roadPitStraight_NW.png" id="4_ly1pv"]
