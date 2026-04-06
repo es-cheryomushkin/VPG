@@ -1,0 +1,194 @@
+[gd_scene format=3 uid="uid://b7suxeqjcrct6"]
+
+[ext_resource type="Script" uid="uid://cjearc0sbpxu1" path="res://second_scene/player_car.gd" id="1_350uq"]
+[ext_resource type="PackedScene" uid="uid://dq3qun2br5bgv" path="res://second_scene/GLTF format/roadStraight.glb" id="5_0ahtn"]
+[ext_resource type="PackedScene" uid="uid://dyr8b0fru5g21" path="res://second_scene/GLTF format/roadCrossing.glb" id="6_nnes4"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_nqgbx"]
+radius = 100.0
+height = 500.0
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_ly1pv"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_0ahtn"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_nnes4"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_xssvq"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_a7egt"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_fepgk"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_350uq"]
+font_size = 50
+
+[node name="RootNode" type="Node2D" unique_id=1839526447]
+
+[node name="Car" type="CharacterBody2D" parent="." unique_id=1034647871]
+position = Vector2(692, 628)
+script = ExtResource("1_350uq")
+max_engine_power = 20000
+friction = 0.05
+metadata/_custom_type_script = "uid://rsms5b8uoymc"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Car" unique_id=1244140809]
+rotation = 1.5707964
+shape = SubResource("CapsuleShape2D_nqgbx")
+
+[node name="Body" type="Node2D" parent="Car" unique_id=316326434]
+
+[node name="FrontSphere" type="MeshInstance2D" parent="Car/Body" unique_id=1595048568]
+material = SubResource("CanvasItemMaterial_ly1pv")
+position = Vector2(150, 0)
+scale = Vector2(200, 200)
+mesh = SubResource("SphereMesh_0ahtn")
+
+[node name="SecondSphere" type="MeshInstance2D" parent="Car/Body" unique_id=1231782277]
+material = SubResource("CanvasItemMaterial_nnes4")
+position = Vector2(-150, 0)
+scale = Vector2(200, 200)
+mesh = SubResource("SphereMesh_xssvq")
+
+[node name="ConnectSquare" type="MeshInstance2D" parent="Car/Body" unique_id=1310294592]
+scale = Vector2(300, 200)
+mesh = SubResource("BoxMesh_a7egt")
+
+[node name="LeftHeadlight" type="Sprite2D" parent="Car/Body" unique_id=485922489]
+position = Vector2(200, -40)
+scale = Vector2(40, 40)
+texture = SubResource("PlaceholderTexture2D_fepgk")
+
+[node name="RightHeadlight" type="Sprite2D" parent="Car/Body" unique_id=178828216]
+position = Vector2(200, 40)
+scale = Vector2(40, 40)
+texture = SubResource("PlaceholderTexture2D_fepgk")
+
+[node name="Camera2D" type="Camera2D" parent="Car" unique_id=1698912330]
+zoom = Vector2(0.5, 0.5)
+position_smoothing_enabled = true
+
+[node name="LabelCanvasLayer" type="CanvasLayer" parent="." unique_id=1265119965]
+process_mode = 3
+
+[node name="SpeedLabel" type="Label" parent="LabelCanvasLayer" unique_id=1540500891]
+offset_left = 19.0
+offset_top = 15.0
+offset_right = 705.0
+offset_bottom = 265.0
+size_flags_horizontal = 3
+size_flags_vertical = 2
+theme_override_constants/outline_size = 10
+theme_override_constants/shadow_outline_size = 1
+theme_override_font_sizes/font_size = 50
+text = "Speed: 0 km/h"
+label_settings = SubResource("LabelSettings_350uq")
+language = "ru"
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="." unique_id=1050693006]
+z_index = -1
+offset_left = -4275.0
+offset_top = -2992.0
+offset_right = 5456.0
+offset_bottom = 4079.0
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer" unique_id=913955626]
+handle_input_locally = false
+size = Vector2i(9731, 7071)
+render_target_update_mode = 4
+
+[node name="RootNode3D" type="Node3D" parent="SubViewportContainer/SubViewport" unique_id=412955967]
+
+[node name="Camera3D" type="Camera3D" parent="SubViewportContainer/SubViewport/RootNode3D" unique_id=625561344]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 100, 0)
+projection = 1
+size = 123.0
+
+[node name="Simple_road_stack" type="Node3D" parent="SubViewportContainer/SubViewport/RootNode3D" unique_id=1904333409]
+
+[node name="roadStraight" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack" unique_id=1035093180 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
+
+[node name="roadStraight2" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack" unique_id=2147442926 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 10)
+
+[node name="roadStraight3" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack" unique_id=2073497875 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 20)
+
+[node name="roadStraight4" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack" unique_id=2049035330 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 30)
+
+[node name="roadStraight5" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack" unique_id=323598341 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 40)
+
+[node name="roadCrossing" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack" unique_id=1365506616 instance=ExtResource("6_nnes4")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, -5, 0, 45)
+
+[node name="Simple_road_stack4" type="Node3D" parent="SubViewportContainer/SubViewport/RootNode3D" unique_id=1365186704]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65, 0, 0)
+
+[node name="roadStraight" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack4" unique_id=1837842625 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
+
+[node name="roadStraight2" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack4" unique_id=953557307 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 10)
+
+[node name="roadStraight3" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack4" unique_id=1251494934 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 20)
+
+[node name="roadStraight4" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack4" unique_id=709973197 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 30)
+
+[node name="roadStraight5" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack4" unique_id=1847762422 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 40)
+
+[node name="roadCrossing" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack4" unique_id=2035588383 instance=ExtResource("6_nnes4")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, -5, 0, 45)
+
+[node name="Simple_road_stack2" type="Node3D" parent="SubViewportContainer/SubViewport/RootNode3D" unique_id=1430122185]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 25, 0, 44.973)
+
+[node name="roadStraight" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack2" unique_id=315466739 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
+
+[node name="roadStraight2" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack2" unique_id=278351456 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 10)
+
+[node name="roadStraight3" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack2" unique_id=188034729 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 20)
+
+[node name="roadStraight4" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack2" unique_id=21319120 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 30)
+
+[node name="roadStraight5" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack2" unique_id=296362272 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 40)
+
+[node name="roadCrossing" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack2" unique_id=1548243667 instance=ExtResource("6_nnes4")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, -5, 0, 45)
+
+[node name="Simple_road_stack3" type="Node3D" parent="SubViewportContainer/SubViewport/RootNode3D" unique_id=902715191]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 25, 0, -10)
+
+[node name="roadStraight" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack3" unique_id=883259456 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
+
+[node name="roadStraight2" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack3" unique_id=569266094 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 10)
+
+[node name="roadStraight3" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack3" unique_id=1801404038 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 20)
+
+[node name="roadStraight4" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack3" unique_id=1576958551 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 30)
+
+[node name="roadStraight5" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack3" unique_id=372166083 instance=ExtResource("5_0ahtn")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 40)
+
+[node name="roadCrossing" parent="SubViewportContainer/SubViewport/RootNode3D/Simple_road_stack3" unique_id=1284292344 instance=ExtResource("6_nnes4")]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, -5, 0, 45)
+
+[node name="OmniLight3D" type="OmniLight3D" parent="SubViewportContainer/SubViewport/RootNode3D" unique_id=1082364540]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 121, 0)
+omni_range = 1334.916
+omni_attenuation = 0.026
