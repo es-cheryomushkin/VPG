@@ -1,11 +1,11 @@
 ## Скрипт управления автомобилем с видом сверху.
 ## Отвечает за обработку ввода игрока, физику движения и обновление спидометра в UI.
-extends OverheadCarBody2D
+class_name PlayerCar extends OverheadCarBody2D
 
 ## МАСШТАБ СИМУЛЯЦИИ: 1 метр = 100 пикселей.
-const PIXELS_PER_METER = 100.0
+const PIXELS_PER_METER: float = 100.0
 ## Коэффициент для перевода скорости из м/с в км/ч.
-const MS_TO_KMH = 3.6
+const MS_TO_KMH: float = 3.6
 
 ## Длина машины в метрах.
 @export var car_length_m: float = 5.0
@@ -13,7 +13,7 @@ const MS_TO_KMH = 3.6
 @export var car_width_m: float = 2.0
 
 ## Ссылка на UI через абсолютный путь (самый надежный способ).
-@onready var speed_label: Label = get_node_or_null("/root/Node2D/CanvasLayer/SpeedLabel")
+@onready var speed_label: Label = get_node_or_null("/root/RootNode/LabelCanvasLayer/SpeedLabel")
 
 ## Возвращает текущую скорость автомобиля в км/ч.
 ## Высчитывается динамически на основе встроенного вектора [code]velocity[/code].

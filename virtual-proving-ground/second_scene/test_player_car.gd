@@ -1,21 +1,21 @@
 extends GutTest
 
-const PlayerCar = preload("res://second_scene/player_car.gd")
-
+## Автомобиль пользователя для тестов
 var car: PlayerCar
+
+## Label в который выводится скорость
 var mock_label: Label
 
-## Вызывается перед каждым тестом. Создаем чистые объекты.
 func before_each() -> void:
 	# Инициализируем машинку
 	car = PlayerCar.new()
-	add_child_autofree(car) # GUT автоматически удалит ноду после теста
+	add_child_autofree(car) # GUT автоматически удалит ноду после каждого теста
 	
 	# фейковый Label для UI, чтобы не зависеть от реальной сцены
 	mock_label = Label.new()
 	add_child_autofree(mock_label)
 	
-	# Инжектим Label напрямую
+	# Инжектим Label напрямую в объект автомобиля
 	car.speed_label = mock_label
 
 ## Тест 1: Проверка математики расчета скорости в км/ч
