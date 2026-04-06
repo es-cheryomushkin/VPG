@@ -5,7 +5,6 @@ public class CarControllerTests
 {
     private GameObject carObject;
     private CarController controller;
-    private Rigidbody2D rb;
 
     [SetUp]
     public void Setup()
@@ -13,12 +12,11 @@ public class CarControllerTests
         // Создаем тестовую машину
         carObject = new GameObject("TestCar");
         controller = carObject.AddComponent<CarController>();
-        rb = carObject.AddComponent<Rigidbody2D>();
-        
+
         // Устанавливаем максимальную скорость
         controller.MaxSpeed = 50f;
-        
-        controller.SetRigidbody(rb);
+
+        controller.rb = carObject.AddComponent<Rigidbody2D>();;
         
         Debug.Log("=== Начало теста CarController ===");
     }
@@ -31,22 +29,22 @@ public class CarControllerTests
     }
 
     [Test]
-    public void LimitSpeed_КогдаСкоростьБольшеМаксимальной_ОграничиваетСкорость()
+    public void LimitSpeed_Когда_Скорость_Больше_Максимальной_Ограничивает_Скорость()
     {
         Debug.Log("Тест: Проверка ограничения скорости");
         
         // Устанавливаем скорость больше максимальной
-        rb.linearVelocity = Vector2.up * 100f;
-        Debug.Log($"  До вызова LimitSpeed: скорость = {rb.linearVelocity.magnitude} (макс: 50)");
+        controller.rb.linearVelocity = Vector2.up * 100f;
+        Debug.Log($"  До вызова LimitSpeed: скорость = {controller.rb.linearVelocity.magnitude} (макс: 50)");
         
         // Вызываем тестовый метод
-        controller.TestLimitSpeed();
+        controller.LimitSpeed();
         
-        Debug.Log($"  После вызова LimitSpeed: скорость = {rb.linearVelocity.magnitude}");
+        Debug.Log($"  После вызова LimitSpeed: скорость = {controller.rb.linearVelocity.magnitude}");
         
         // Проверяем, что скорость стала 50
         Assert.AreEqual(50f, rb.linearVelocity.magnitude, 0.1f, 
-            $"Скорость должна быть 50, но сейчас {rb.linearVelocity.magnitude}");
+            $"Скорость должна быть 50, но сейчас {controller.rb.linearVelocity.magnitude}");
         
         Debug.Log("  ✓ Тест пройден!");
     }

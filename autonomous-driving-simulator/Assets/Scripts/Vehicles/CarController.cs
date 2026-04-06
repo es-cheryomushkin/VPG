@@ -3,9 +3,10 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// Управляет движением автомобиля в 2D.
-/// Машина получает ввод через New Input System, разгоняется силой,
+/// Машина получает ввод через New Input System, разгоняется с помощью применения силы,
 /// поворачивает через angularVelocity и частично гасит боковое скольжение.
 /// </summary>
+/// 
 public class CarController : MonoBehaviour
 {
     [Header("Параметры движения")]
@@ -27,7 +28,8 @@ public class CarController : MonoBehaviour
     [Tooltip("Коэффициент бокового трения (0-1). Чем меньше, тем больше скольжения")]
     [SerializeField] private float lateralFriction = 0.2f;
     
-    private Rigidbody2D rb;
+    [assembly: InternalsVisibleTo("Tests")]
+    Rigidbody2D rb;
     private InputSystem_Actions input;
 
     /// <summary>
@@ -40,6 +42,7 @@ public class CarController : MonoBehaviour
 
     /// <summary>
     /// Получает компонент Rigidbody2D и настраивает затухание.
+    /// Под затуханием подразумевается замедление с помощью силы трения.
     /// </summary>
     private void Start()
     {
@@ -60,13 +63,12 @@ public class CarController : MonoBehaviour
     /// <summary>
     /// Вызывается каждый физический кадр. Обрабатывает движение автомобиля.
     /// </summary>
-    private void FixedUpdate()
+    void FixedUpdate()
     {
-        Vector2 inputVector = input.Player.Move.ReadValue<Vector2>();
-
-        ApplyAcceleration(inputVector.y);
+        Vector2 keyboardInput = input.Player.Move.ReadValue<Vector2>();
+        ApplyAcceleration(keyboardInput.y);
         LimitSpeed();
-        ApplySteering(inputVector.x);
+        ApplySteering(keyboardInput.x);
         ApplyLateralFriction();
     }
 
@@ -74,7 +76,7 @@ public class CarController : MonoBehaviour
     /// Разгоняет машину, применяя силу в направлении вперед.
     /// </summary>
     /// <param name="throttle">Значение газа от -1 до 1</param>
-    private void ApplyAcceleration(float throttle)
+    void ApplyAcceleration(float throttle)
     {
         rb.AddForce(acceleration * throttle * transform.up);
     }
@@ -82,7 +84,8 @@ public class CarController : MonoBehaviour
     /// <summary>
     /// Ограничивает максимальную скорость машины.
     /// </summary>
-    private void LimitSpeed()
+    [assembly: InternalsVisibleTo("Tests")]
+    void LimitSpeed()
     {
         if (rb.linearVelocity.magnitude > maxSpeed)
         {
@@ -94,7 +97,7 @@ public class CarController : MonoBehaviour
     /// Поворачивает машину с учетом текущей скорости и направления движения.
     /// </summary>
     /// <param name="turnInput">Значение поворота от -1 до 1</param>
-    private void ApplySteering(float turnInput)
+    void ApplySteering(float turnInput)
     {
         float forwardSpeed = Vector2.Dot(rb.linearVelocity, transform.up);
 
@@ -113,44 +116,11 @@ public class CarController : MonoBehaviour
     /// <summary>
     /// Уменьшает боковое скольжение, сохраняя продольную скорость.
     /// </summary>
-    private void ApplyLateralFriction()
+    void ApplyLateralFriction()
     {
         Vector2 forward = transform.up * Vector2.Dot(rb.linearVelocity, transform.up);
         Vector2 sideways = transform.right * Vector2.Dot(rb.linearVelocity, transform.right);
 
         rb.linearVelocity = forward + sideways * lateralFriction;
-    }
-
-    // ========== Публичные методы для тестирования ==========
-    public void TestLimitSpeed()
-    {
-        LimitSpeed();
-    }
-
-    public void TestApplyAcceleration(float throttle)
-    {
-        ApplyAcceleration(throttle);
-    }
-
-    public void TestApplySteering(float turnInput)
-    {
-        ApplySteering(turnInput);
-    }
-
-    public void TestApplyLateralFriction()
-    {
-        ApplyLateralFriction();
-    }
-
-    public float MaxSpeed
-    {
-        get => maxSpeed;
-        set => maxSpeed = value;
-    }
-
-    // Метод для установки Rigidbody2D из тестов
-    public void SetRigidbody(Rigidbody2D rigidbody)
-    {
-        rb = rigidbody;
     }
 }

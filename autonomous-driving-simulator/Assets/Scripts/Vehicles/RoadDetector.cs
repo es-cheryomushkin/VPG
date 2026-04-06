@@ -8,7 +8,9 @@ public class RoadDetector : MonoBehaviour
 {
     [Header("Настройки детекции")]
     [Tooltip("Слой, на котором находится дорога")]
-    [SerializeField] private LayerMask roadLayer;
+    [SerializeField] 
+    [assembly: InternalsVisibleTo("Tests")]
+    LayerMask roadLayer;
 
     [Tooltip("Точки проверки (углы автомобиля)")]
     [SerializeField] private Transform[] checkPoints;
@@ -40,7 +42,8 @@ public class RoadDetector : MonoBehaviour
     /// </summary>
     public UnityEvent OnExitRoad => onExitRoad;
 
-    private void Update()
+    [assembly: InternalsVisibleTo("Tests")]
+    void Update()
     {
         IsOnRoad = CheckIfOnRoad();
 
@@ -103,36 +106,5 @@ public class RoadDetector : MonoBehaviour
             Debug.Log("Машина выехала за пределы дороги!");
             onExitRoad?.Invoke();
         }
-    }
-
-    // ========== Публичные методы для тестирования ==========
-    public void TestUpdate()
-    {
-        Update();
-    }
-
-    public bool TestCheckIfOnRoad()
-    {
-        return CheckIfOnRoad();
-    }
-
-    public bool TestIsPointOnRoad(Vector2 position)
-    {
-        return IsPointOnRoad(position);
-    }
-
-    public void SetCheckPoints(Transform[] points)
-    {
-        checkPoints = points;
-    }
-
-    public void SetCheckRadius(float radius)
-    {
-        checkRadius = radius;
-    }
-
-    public void SetRoadLayer(LayerMask layer)
-    {
-        roadLayer = layer;
     }
 }

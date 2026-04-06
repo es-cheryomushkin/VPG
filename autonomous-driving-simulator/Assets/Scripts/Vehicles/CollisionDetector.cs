@@ -8,7 +8,7 @@ public class CollisionDetector : MonoBehaviour
 {
     [Header("Настройки")]
     [Tooltip("Включено ли обнаружение столкновений")]
-    [SerializeField] private bool isEnabled = true;
+    [SerializeField] bool isEnabled = true;
 
     [Header("События")]
     [Tooltip("Событие при любом столкновении")]
@@ -46,7 +46,7 @@ public class CollisionDetector : MonoBehaviour
     /// <summary>
     /// Обрабатывает столкновение и вызывает события.
     /// </summary>
-    private void HandleCollision(Collision2D collision)
+    void HandleCollision(Collision2D collision)
     {
         Debug.Log($"Столкновение с: {collision.gameObject.name}");
 
@@ -62,35 +62,9 @@ public class CollisionDetector : MonoBehaviour
     /// <summary>
     /// Проверяет, является ли объект автомобилем.
     /// </summary>
-    private bool IsCar(GameObject obj)
+    [assembly: InternalsVisibleTo("Tests")]
+    bool IsCar(GameObject obj)
     {
         return obj.CompareTag("Car");
-    }
-
-    // ========== Публичные методы для тестирования ==========
-
-    // Вспомогательный класс для имитации столкновения (только для тестов)
-    public class TestCollision : Collision2D
-    {
-        private GameObject gameObjectOverride;
-        
-        public TestCollision(GameObject obj)
-        {
-            gameObjectOverride = obj;
-        }
-        
-        public new GameObject gameObject => gameObjectOverride;
-    }
-    
-    public void TestHandleCollision(GameObject other)
-    {
-        // Создаем простую имитацию столкновения
-        var collision = new TestCollision(other);
-        HandleCollision(collision);
-    }
-
-    public bool TestIsCar(GameObject obj)
-    {
-        return IsCar(obj);
     }
 }

@@ -78,7 +78,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1255003769
-  m_SortingLayer: 2
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 1169515157355589464, guid: cd4fbca97962eb115b72e26aabb76f54, type: 3}
@@ -89,7 +89,7 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1301244275915344143
 GameObject:
@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 3330570003455328978}
   - component: {fileID: 5646986307969242058}
   - component: {fileID: 2354445721176468861}
-  - component: {fileID: 2303872907759661945}
+  - component: {fileID: 6716647811615333611}
   - component: {fileID: 1081230199963166886}
   - component: {fileID: 8218114355492956074}
   m_Layer: 6
@@ -236,7 +236,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.9517221, y: 4.823205}
   m_EdgeRadius: 0
---- !u!114 &2303872907759661945
+--- !u!114 &6716647811615333611
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -245,9 +245,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 1400561491075049601}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c73521719d7c41c5a9d6c7bc38aa315e, type: 3}
+  m_Script: {fileID: 11500000, guid: fd3d1f1b88c904b4cab69a7d5f284943, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CollisionDetector
+  m_EditorClassIdentifier: Project.Runtime::CollisionDetector
+  isEnabled: 1
+  onCollision:
+    m_PersistentCalls:
+      m_Calls: []
+  onCarCollision:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1081230199963166886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -257,19 +264,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1400561491075049601}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: afcd175776196f916bc7bc6a6a43ab4e, type: 3}
+  m_Script: {fileID: 11500000, guid: c3ea5e4946daa0f4c96c539487c15dd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoadDetector
-  roadLayer:
-    serializedVersion: 2
-    m_Bits: 8
-  checkPoints:
-  - {fileID: 1293685960755416827}
-  - {fileID: 4376102504031158320}
-  - {fileID: 3134067328384175358}
-  - {fileID: 3373696383732360996}
-  checkRadius: 0.2
-  isOnRoad: 0
+  acceleration: 8
+  steering: 240
+  maxSpeed: 60
+  damping: 1
+  minSteeringSpeed: 0.3
+  lateralFriction: 0.2
 --- !u!114 &8218114355492956074
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277,15 +280,22 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1400561491075049601}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96d76a3781edad9d98b9c5778e82643c, type: 3}
+  m_Script: {fileID: 11500000, guid: c34c64de7171fd348a2103b16004411a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarController
-  acceleration: 8
-  steering: 240
-  maxSpeed: 60
-  damping: 1
+  roadLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  checkPoints: []
+  checkRadius: 0.2
+  onEnterRoad:
+    m_PersistentCalls:
+      m_Calls: []
+  onExitRoad:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1817163887510422291
 GameObject:
   m_ObjectHideFlags: 0

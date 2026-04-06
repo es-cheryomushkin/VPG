@@ -50,7 +50,7 @@ public class CollisionDetectorTests
         Debug.Log("Тест: Проверка определения машины по тегу");
         
         // Вызываем тестовый метод
-        bool result = detector.TestIsCar(otherCar);
+        bool result = detector.IsCar(otherCar);
         
         Debug.Log($"  Объект: {otherCar.name}, тег: {otherCar.tag}");
         Debug.Log($"  Результат IsCar: {result}");

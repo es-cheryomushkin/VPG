@@ -38,7 +38,7 @@ public class RoadDetectorTests
         // Устанавливаем точки и радиус в детектор
         detector.SetCheckPoints(checkPoints);
         detector.SetCheckRadius(0.2f);
-        detector.SetRoadLayer(LayerMask.GetMask("Default"));
+        detector.roadLayer = LayerMask.GetMask("Default");
         
         Debug.Log("=== Начало теста RoadDetector ===");
     }
@@ -61,7 +61,7 @@ public class RoadDetectorTests
         Debug.Log($"  Позиция машины: {carObject.transform.position}");
         
         // Вызываем тестовый метод Update
-        detector.TestUpdate();
+        detector.Update();
         
         Debug.Log($"  Результат IsOnRoad: {detector.IsOnRoad}");
         
@@ -81,7 +81,7 @@ public class RoadDetectorTests
         Debug.Log($"  Позиция машины: {carObject.transform.position}");
         
         // Вызываем тестовый метод Update
-        detector.TestUpdate();
+        detector.Update();
         
         Debug.Log($"  Результат IsOnRoad: {detector.IsOnRoad}");
         
