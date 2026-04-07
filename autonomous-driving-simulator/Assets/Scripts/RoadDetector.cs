@@ -9,28 +9,27 @@ public class RoadDetector : MonoBehaviour
     [Header("Настройки детекции")]
     [Tooltip("Слой, на котором находится дорога")]
     [SerializeField] 
-    [assembly: InternalsVisibleTo("Tests")]
-    LayerMask roadLayer;
+    internal LayerMask roadLayer;
 
     [Tooltip("Точки проверки (углы автомобиля)")]
-    [SerializeField] private Transform[] checkPoints;
+    [SerializeField] internal Transform[] checkPoints;
 
     [Tooltip("Радиус проверки каждой точки")]
-    [SerializeField] private float checkRadius = 0.2f;
+    [SerializeField] internal float checkRadius = 0.2f;
 
     [Header("События")]
     [Tooltip("Событие при въезде на дорогу")]
-    [SerializeField] private UnityEvent onEnterRoad;
+    [SerializeField] internal UnityEvent onEnterRoad;
 
     [Tooltip("Событие при съезде с дороги")]
-    [SerializeField] private UnityEvent onExitRoad;
+    [SerializeField] internal UnityEvent onExitRoad;
 
-    private bool wasOnRoad = true;
+    internal bool wasOnRoad = true;
 
     /// <summary>
     /// Находится ли автомобиль на дороге в данный момент.
     /// </summary>
-    public bool IsOnRoad { get; private set; }
+    public bool IsOnRoad { get; internal set; }
 
     /// <summary>
     /// Событие при въезде на дорогу.
@@ -42,8 +41,7 @@ public class RoadDetector : MonoBehaviour
     /// </summary>
     public UnityEvent OnExitRoad => onExitRoad;
 
-    [assembly: InternalsVisibleTo("Tests")]
-    void Update()
+    internal void Update()
     {
         IsOnRoad = CheckIfOnRoad();
 
@@ -57,7 +55,7 @@ public class RoadDetector : MonoBehaviour
     /// Проверяет, находятся ли все контрольные точки на дороге.
     /// </summary>
     /// <returns>True, если все точки на дороге, иначе False</returns>
-    private bool CheckIfOnRoad()
+    internal bool CheckIfOnRoad()
     {
         if (checkPoints == null || checkPoints.Length == 0)
         {
@@ -85,7 +83,7 @@ public class RoadDetector : MonoBehaviour
     /// </summary>
     /// <param name="position">Позиция для проверки</param>
     /// <returns>True, если точка на дороге</returns>
-    private bool IsPointOnRoad(Vector2 position)
+    internal bool IsPointOnRoad(Vector2 position)
     {
         return Physics2D.OverlapCircle(position, checkRadius, roadLayer) != null;
     }
@@ -94,7 +92,7 @@ public class RoadDetector : MonoBehaviour
     /// Обрабатывает смену состояния нахождения на дороге.
     /// </summary>
     /// <param name="isOnRoad">Новое состояние нахождения на дороге</param>
-    private void HandleStateChanged(bool isOnRoad)
+    internal void HandleStateChanged(bool isOnRoad)
     {
         if (isOnRoad)
         {

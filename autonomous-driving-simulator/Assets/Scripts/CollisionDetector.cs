@@ -36,7 +36,7 @@ public class CollisionDetector : MonoBehaviour
     /// </summary>
     public UnityEvent<GameObject> OnCarCollision => onCarCollision;
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    internal void OnCollisionEnter2D(Collision2D collision)
     {
         if (!isEnabled) return;
 
@@ -46,7 +46,7 @@ public class CollisionDetector : MonoBehaviour
     /// <summary>
     /// Обрабатывает столкновение и вызывает события.
     /// </summary>
-    void HandleCollision(Collision2D collision)
+    internal void HandleCollision(Collision2D collision)
     {
         Debug.Log($"Столкновение с: {collision.gameObject.name}");
 
@@ -62,8 +62,7 @@ public class CollisionDetector : MonoBehaviour
     /// <summary>
     /// Проверяет, является ли объект автомобилем.
     /// </summary>
-    [assembly: InternalsVisibleTo("Tests")]
-    bool IsCar(GameObject obj)
+    internal bool IsCar(GameObject obj)
     {
         return obj.CompareTag("Car");
     }

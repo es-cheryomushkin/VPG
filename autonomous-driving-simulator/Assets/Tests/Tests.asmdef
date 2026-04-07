@@ -4,20 +4,16 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Project.Runtime",
-        "Unity.InputSystem",
-        "Unity.InputSystem.IntegrationTests"
+        "GameScripts"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": ["Editor"],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll"
     ],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],

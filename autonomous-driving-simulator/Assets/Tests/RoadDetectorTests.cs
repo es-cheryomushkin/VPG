@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UnityEngine;
+using System.Reflection;
 
 public class RoadDetectorTests
 {
@@ -35,9 +36,8 @@ public class RoadDetectorTests
         checkPoints[2].localPosition = new Vector2(-0.5f, -0.5f);  // левый нижний
         checkPoints[3].localPosition = new Vector2(0.5f, -0.5f);   // правый нижний
         
-        // Устанавливаем точки и радиус в детектор
-        detector.SetCheckPoints(checkPoints);
-        detector.SetCheckRadius(0.2f);
+        detector.checkPoints = checkPoints;
+        detector.checkRadius = 0.2f;
         detector.roadLayer = LayerMask.GetMask("Default");
         
         Debug.Log("=== Начало теста RoadDetector ===");

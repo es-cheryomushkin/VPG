@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UnityEngine;
+using System.Reflection;
 
 public class CarControllerTests
 {
@@ -14,9 +15,9 @@ public class CarControllerTests
         controller = carObject.AddComponent<CarController>();
 
         // Устанавливаем максимальную скорость
-        controller.MaxSpeed = 50f;
+        controller.maxSpeed = 50f;
 
-        controller.rb = carObject.AddComponent<Rigidbody2D>();;
+        controller.rb = carObject.AddComponent<Rigidbody2D>();
         
         Debug.Log("=== Начало теста CarController ===");
     }
@@ -43,7 +44,7 @@ public class CarControllerTests
         Debug.Log($"  После вызова LimitSpeed: скорость = {controller.rb.linearVelocity.magnitude}");
         
         // Проверяем, что скорость стала 50
-        Assert.AreEqual(50f, rb.linearVelocity.magnitude, 0.1f, 
+        Assert.AreEqual(50f, controller.rb.linearVelocity.magnitude, 0.1f, 
             $"Скорость должна быть 50, но сейчас {controller.rb.linearVelocity.magnitude}");
         
         Debug.Log("  ✓ Тест пройден!");
