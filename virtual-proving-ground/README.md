@@ -100,3 +100,36 @@ follow the transformed path instead of the one you drew._
 ## Installation
 
 Install from the [Godot Asset Library](https://godotengine.org/asset-library/asset/1717).
+
+## Установка аддонов (GUT и других)
+
+Проект использует **gd_plug** для управления зависимостями. Аддоны не хранятся в репозитории, а скачиваются автоматически.
+
+### После клонирования репозитория:
+
+```bash
+cd virtual-proving-ground
+godot --headless -s plug.gd install
+```
+
+Если `godot` не распознаётся, укажите полный путь:
+```bash
+& "C:\Program Files\Godot\Godot_v4.6.2-stable_win64.exe" --headless -s plug.gd install
+```
+
+### Обновление аддонов:
+```bash
+godot --headless -s plug.gd update
+```
+
+### Запуск тестов (GUT):
+```bash
+godot --headless -s addons/gut/gut_cmdln.gd -gtest
+```
+
+### Очистка кэша:
+```bash
+godot --headless -s plug.gd clean
+```
+
+> **Примечание:** GUT и другие аддоны скачаются автоматически при первой установке. Не нужно копировать их вручную.
