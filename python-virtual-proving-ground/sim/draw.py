@@ -1,9 +1,6 @@
 import pygame  # type: ignore
 import math
 
-# ==============================
-# Text Drawing Function
-# ==============================
 def draw_text(screen, text, x, y, font, color=(255,255,255)):
     """
     Draw a single line of text on the screen.
@@ -19,10 +16,6 @@ def draw_text(screen, text, x, y, font, color=(255,255,255)):
     img = font.render(text, True, color)
     screen.blit(img, (x, y))
 
-
-# ==============================
-# Main Draw Function
-# ==============================
 def draw(screen, entities, ego, mode="manual", font=None,
          episode_time=0.0, max_time=10.0, scenario_index=0, show_legend=True):
     """
@@ -69,10 +62,7 @@ def draw(screen, entities, ego, mode="manual", font=None,
             hy = e.y + math.sin(e.heading + getattr(e, 'steer', 0) * 0.5) * 60
             pygame.draw.line(screen, (255, 255, 0), (e.x, e.y), (hx, hy), 2)
 
-
-    # ==============================
     # UI Overlay
-    # ==============================
     if font is not None and show_legend:
         draw_text(screen, f"Mode: {mode}", 10, 10, font)
         draw_text(screen, f"Scenario: {scenario_index + 1}", 10, 30, font)
@@ -80,8 +70,8 @@ def draw(screen, entities, ego, mode="manual", font=None,
         draw_text(screen, "TAB=switch mode | R=reset | N=next scenario", 10, 70, font)
         if ego is not None:
             speed = getattr(ego, 'speed', 0)
-            real_speed = speed * 10 # MULTIPLIER
+            real_speed = speed / 10 # back on MULTIPLIER
             kmh = real_speed * 3.6
 
-            draw_text(screen, f"Ego Speed: {speed:.2f} m/s ({kmh:.1f} km/h)", 10, 90, font)
+            draw_text(screen, f"Ego Speed: {real_speed:.2f} m/s ({kmh:.1f} km/h)", 10, 90, font)
             draw_text(screen, f"Ego Position: ({ego.x:.1f}, {ego.y:.1f}) m", 10, 110, font)
