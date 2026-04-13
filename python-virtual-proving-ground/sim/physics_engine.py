@@ -26,7 +26,14 @@ class PhysicsEngine:
     # ==========================
     # MAIN STEP
     # ==========================
+    # ==========================
+    # MAIN STEP
+    # ==========================
     def step(self, dt):
+        """
+        Advance simulation by dt seconds.
+        Handles collisions first, then moves all entities and applies friction.
+        """
         self.handle_collisions()
         self.update_positions(dt)
         self.time += dt
@@ -38,6 +45,7 @@ class PhysicsEngine:
         for e in self.entities:
             vx, vy = self._get_velocity(e)
 
+            # Update position
             e.x += vx * dt * MULTIPLIER
             e.y += vy * dt * MULTIPLIER
 
@@ -51,6 +59,9 @@ class PhysicsEngine:
     # COLLISIONS
     # ==========================
     def handle_collisions(self):
+        """
+        Check all entity pairs for collisions and apply response.
+        """
         n = len(self.entities)
 
         for i in range(n):
@@ -107,50 +118,50 @@ class PhysicsEngine:
                 cx = correction * nx
                 cy = correction * ny
 
-                a.x -= cx / ma
-                a.y -= cy / ma
-                b.x += cx / mb
-                b.y += cy / mb
+        a.x -= cx / ma
+        a.y -= cy / ma
+        b.x += cx / mb
+        b.y += cy / mb
 
-                # ==========================
-                # IMPULSE (CLAMPED)
-                # ==========================
-                j = -(1 + RESTIUTION) * rel_n
-                j = max(-MAX_IMPULSE, min(MAX_IMPULSE, j))
+        # ==========================
+        # IMPULSE (CLAMPED)
+        # ==========================
+        # j = -(1 + RESTIUTION) * rel_n
+        j = max(-MAX_IMPULSE, min(MAX_IMPULSE, j))
 
-                impulse_a = j / ma
-                impulse_b = j / mb
+        impulse_a = j / ma
+        impulse_b = j / mb
 
-                av_n += impulse_a
-                bv_n -= impulse_b
+        av_n += impulse_a
+        bv_n -= impulse_b
 
-                # ==========================
-                # RECONSTRUCT VELOCITY
-                # ==========================
-                avx = av_tx + av_n * nx
-                avy = av_ty + av_n * ny
+        # ==========================
+        # RECONSTRUCT VELOCITY
+        # ==========================
+        avx = av_tx + av_n * nx
+        avy = av_ty + av_n * ny
 
-                bvx = bv_tx + bv_n * nx
-                bvy = bv_ty + bv_n * ny
+        bvx = bv_tx + bv_n * nx
+        bvy = bv_ty + bv_n * ny
 
-                # ==========================
-                # CAR STABILITY FIX
-                # (kills sideways chaos)
-                # ==========================
-                avx, avy = self._apply_car_stability(a, avx, avy)
-                bvx, bvy = self._apply_car_stability(b, bvx, bvy)
+        # ==========================
+        # CAR STABILITY FIX
+        # (kills sideways chaos)
+        # ==========================
+        avx, avy = self._apply_car_stability(a, avx, avy)
+        bvx, bvy = self._apply_car_stability(b, bvx, bvy)
 
-                self._set_velocity(a, avx, avy)
-                self._set_velocity(b, bvx, bvy)
+        self._set_velocity(a, avx, avy)
+        self._set_velocity(b, bvx, bvy)
 
-                # ==========================
-                # DEBUG LOG
-                # ==========================
-                self.last_collision = {
-                    "impulse": j,
-                    "overlap": overlap,
-                    "entities": (a, b)
-                }
+        # ==========================
+        # DEBUG LOG
+        # ==========================
+        self.last_collision = {
+            "impulse": j,
+            "overlap": overlap,
+            "entities": (a, b)
+        }
 
     # ==========================
     # CAR STABILITY MODEL

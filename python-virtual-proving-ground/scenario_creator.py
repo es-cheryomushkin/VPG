@@ -119,6 +119,20 @@ def save_scenario():
         "entities": out
     }
 
+    # Convert objects to dicts for saving
+    out = []
+    for e in entities:
+        data = {
+            "type": e.type,
+            "x": e.x,
+            "y": e.y,
+            "vx": getattr(e, "vx", e.get_velocity()[0]),
+            "vy": getattr(e, "vy", e.get_velocity()[1]),
+            "heading": getattr(e, "heading", 0),
+            "mass": getattr(e, "mass", 1),
+        }
+        out.append(data)
+
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
 
@@ -214,7 +228,6 @@ def handle_events():
     global selected_entity, dragging, overwrite_prompt
 
     for event in pygame.event.get():
-
         if event.type == pygame.QUIT:
             running = False
 
@@ -349,6 +362,9 @@ def draw_text(text, x, y):
 def draw_preview():
     """Draws a line from mouse cursor in the direction of current heading, to preview new entity placement."""
     mx, my = pygame.mouse.get_pos()
+    px = mx + math.cos(current_heading) * 40
+    py = my + math.sin(current_heading) * 40
+    pygame.draw.line(screen, (100, 200, 255), (mx, my), (px, py), 3)
 
     speed = current_speed
     direction = 1 if speed >= 0 else -1
