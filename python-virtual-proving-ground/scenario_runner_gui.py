@@ -66,7 +66,7 @@ def main():
     load_current_scenario()
 
     while running:
-        frame_dt = clock.tick(FPS) / 1000.0
+        frame_dt = deltaTimeBetweenFramesMs()
         accumulator += frame_dt
 
         if accumulator > MAX_ACCUMULATED_TIME:
@@ -121,10 +121,16 @@ def main():
     pygame.quit()
     sys.exit()
 
+
+def deltaTimeBetweenFramesMs():
+     """Return the time in ms since the last frame, based on the clock tick."""
+     return clock.tick(FPS) / 1000.0
+
 # ==========================
 # ARGUMENT PARSING
 # ==========================
 def parse_args():
+    """Helper argument parser"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--scenario", type=str, default="scenarios", help="Path to scenario file or folder")
     parser.add_argument("--mode", type=str, default="manual", choices=["manual", "ai"], help="Control mode")

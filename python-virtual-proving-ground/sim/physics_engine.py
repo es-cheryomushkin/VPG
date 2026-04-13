@@ -26,9 +26,6 @@ class PhysicsEngine:
     # ==========================
     # MAIN STEP
     # ==========================
-    # ==========================
-    # MAIN STEP
-    # ==========================
     def step(self, dt):
         """
         Advance simulation by dt seconds.
