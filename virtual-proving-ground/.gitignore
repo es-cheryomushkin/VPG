@@ -3,3 +3,6 @@
 /android/
 *.uid
 *.import
+addons/GitGodot/
+addons/srcoder_simplecar/
+addons/gut/

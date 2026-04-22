@@ -1,0 +1,65 @@
+[gd_scene format=3 uid="uid://bpeche1ds87hl"]
+
+[ext_resource type="PackedScene" uid="uid://7l1irinimxa" path="res://addons/srcoder_simplecar/car.tscn" id="2_uyjk4"]
+[ext_resource type="PackedScene" uid="uid://rjx8tx5y7j2p" path="res://addons/srcoder_simplecar/follow_camera.tscn" id="3_moyyn"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_nfe1b"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uyjk4"]
+metallic = 1.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nfe1b"]
+albedo_color = Color(0.93743384, 0.5332643, 0.02637546, 1)
+
+[sub_resource type="PrismMesh" id="PrismMesh_nfe1b"]
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_nfe1b"]
+data = PackedVector3Array(0, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0.5, -0.5, 0.5, 0, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, -0.5, -0.5, -0.5, 0, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5)
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_uyjk4"]
+data = PackedVector3Array(-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5)
+
+[sub_resource type="Environment" id="Environment_wohum"]
+background_mode = 2
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_wohum"]
+
+[sub_resource type="Compositor" id="Compositor_nfe1b"]
+
+[node name="Node3D" type="Node2D" unique_id=1150776887]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=1943947603]
+
+[node name="MainPlatform" type="MeshInstance3D" parent="StaticBody3D" unique_id=399907432]
+transform = Transform3D(201.06837, 0, 0, 0, 4.009524, 0, 0, 0, 175.13892, 0, -4.9511642, 0)
+mesh = SubResource("BoxMesh_nfe1b")
+surface_material_override/0 = SubResource("StandardMaterial3D_uyjk4")
+
+[node name="Ramp1" type="MeshInstance3D" parent="StaticBody3D" unique_id=261223080]
+transform = Transform3D(74.71824, 0, 0, 0, 27.21671, 0, 0, 0, 52.377083, 0, -4.9511642, 51.913574)
+material_override = SubResource("StandardMaterial3D_nfe1b")
+mesh = SubResource("PrismMesh_nfe1b")
+surface_material_override/0 = SubResource("StandardMaterial3D_uyjk4")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=402128085]
+transform = Transform3D(74.71824, 0, 0, 0, 27.21671, 0, 0, 0, 52.377083, 0, -4.9511642, 51.913574)
+shape = SubResource("ConcavePolygonShape3D_nfe1b")
+
+[node name="MainPlatformCollision" type="CollisionShape3D" parent="StaticBody3D" unique_id=240451270]
+transform = Transform3D(201.06837, 0, 0, 0, 4.009524, 0, 0, 0, 175.13892, 0, -4.9511642, 0)
+shape = SubResource("ConcavePolygonShape3D_uyjk4")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="StaticBody3D" unique_id=1666367822]
+transform = Transform3D(0.679027, -0.42874724, -0.59590125, 0.73391086, 0.3773973, 0.564753, -0.017244736, -0.820821, 0.5709252, 0, 32.45433, 0)
+light_energy = 1.419
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="StaticBody3D" unique_id=710578605]
+environment = SubResource("Environment_wohum")
+camera_attributes = SubResource("CameraAttributesPractical_wohum")
+compositor = SubResource("Compositor_nfe1b")
+
+[node name="car" parent="StaticBody3D" unique_id=540147949 instance=ExtResource("2_uyjk4")]
+mass = 100.0
+
+[node name="FollowCamera" parent="StaticBody3D" unique_id=1227395599 node_paths=PackedStringArray("follow_target") instance=ExtResource("3_moyyn")]
+follow_target = NodePath("../car")

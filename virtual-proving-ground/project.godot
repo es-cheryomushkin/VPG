@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Virtual_proving_ground"
+run/main_scene="uid://bpeche1ds87hl"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -20,6 +21,11 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[editor]
+
+version_control/plugin_name="GitPlugin"
+version_control/autoload_on_startup=true
 
 [editor_plugins]
 
