@@ -1,3 +1,41 @@
+# Installation
+
+## Установка аддонов (GUT и других)
+
+Проект использует **gd_plug** для управления зависимостями. Аддоны не хранятся в репозитории, а скачиваются автоматически.
+
+### После клонирования репозитория:
+
+```bash
+cd virtual-proving-ground
+godot --headless -s plug.gd install
+godot --headless --import
+```
+
+Если `godot` не распознаётся, укажите полный путь:
+```bash
+"C:\\Program Files\\Godot\\Godot_v4.6.2-stable_win64.exe"
+```
+
+### Обновление аддонов (необязательно)
+```bash
+godot --headless -s plug.gd update
+```
+
+### Запуск тестов (GUT):
+```bash
+godot --headless -s addons/gut/gut_cmdln.gd -gtest -gdir=res://second_scene/
+```
+
+### Очистка кэша:
+```bash
+godot --headless -s plug.gd clean
+```
+
+> **Примечание:** GUT и другие аддоны скачаются автоматически при первой установке. Не нужно копировать их вручную.
+
+
+
 # 2D Overhead Car Physics for Godot 4
 
 add second_scene to GUT tab to run tests
@@ -97,39 +135,3 @@ _Make sure your Path2D is a child of the main scene or a static node. If it's a 
  not what you want. Also make sure your Path2D does not have any transformations applied that you didn't intend. If you scale or rotate the path then the car will 
 follow the transformed path instead of the one you drew._
 
-## Installation
-
-Install from the [Godot Asset Library](https://godotengine.org/asset-library/asset/1717).
-
-## Установка аддонов (GUT и других)
-
-Проект использует **gd_plug** для управления зависимостями. Аддоны не хранятся в репозитории, а скачиваются автоматически.
-
-### После клонирования репозитория:
-
-```bash
-cd virtual-proving-ground
-godot --headless -s plug.gd install
-```
-
-Если `godot` не распознаётся, укажите полный путь:
-```bash
-& "C:\Program Files\Godot\Godot_v4.6.2-stable_win64.exe" --headless -s plug.gd install
-```
-
-### Обновление аддонов:
-```bash
-godot --headless -s plug.gd update
-```
-
-### Запуск тестов (GUT):
-```bash
-godot --headless -s addons/gut/gut_cmdln.gd -gtest
-```
-
-### Очистка кэша:
-```bash
-godot --headless -s plug.gd clean
-```
-
-> **Примечание:** GUT и другие аддоны скачаются автоматически при первой установке. Не нужно копировать их вручную.
