@@ -89,14 +89,8 @@ def main():
             else:
                 steer, throttle, brake = simple_ai_policy(controlledCar, entities)
 
-            try:
-                controlledCar.update(throttle, brake, steer, FIXED_DT)
-                engine.step(FIXED_DT)
-            except Exception as e:
-                # temporarily accepting due to edge cases
-                print(f"Error during physics update: {e}")
-                # running = False
-                break
+            controlledCar.update(throttle, brake, steer, FIXED_DT)
+            engine.step(FIXED_DT)
 
             episode_time += FIXED_DT
 
@@ -212,7 +206,7 @@ def manual_control(keys, controlledCar, FIXED_DT):
 
 def simple_ai_policy(controlledCar, entities):
     """Placeholder AI policy, returns (steer, throttle, brake)."""
-    return 1, 0, 1  # Always brake for now
+    return 0, 0, 1  # Always brake for now
 
 
 def handle_events():
