@@ -10,5 +10,7 @@ func spawn_car(pos, initial_velocity = Vector2.ZERO):
 	car.velocity = initial_velocity
 
 func _ready():
-	spawn_car(Vector2(-500, -560), Vector2(300, 0))
+	spawn_car(Vector2(-200, -400), Vector2(300, 0))
+	#spawn_car(Vector2(200, 400), Vector2(300, 0))
+	#spawn_car(Vector2(700, 400), Vector2(300, 0))
 	pass
