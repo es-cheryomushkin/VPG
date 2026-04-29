@@ -36,7 +36,7 @@ python-virtual-proving-ground/
 
 ### 1. Требования
 
-- Python 3.15  
+- Python 3.13.13  
 - Библиотека `pygame`
 
 Установка зависимостей:
