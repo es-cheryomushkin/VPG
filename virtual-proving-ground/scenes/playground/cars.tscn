@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cm3ml58sh72ap"]
 
-[ext_resource type="Script" uid="uid://c2uc18updv7dl" path="res://scripts/Player/car.gd" id="1_l1lfi"]
+[ext_resource type="Script" uid="uid://bbvtqe4gigeph" path="res://scripts/Player/car.gd" id="1_l1lfi"]
 [ext_resource type="Texture2D" uid="uid://bd052c38dt8je" path="res://assets/vehicles/Porsche 911 Carrera 1998.png" id="2_xhvr6"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_51ujy"]

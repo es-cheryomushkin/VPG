@@ -3,6 +3,7 @@
 /android/
 *.uid
 *.import
+*.tmp
 
 # gd-plug
 .plugged/
