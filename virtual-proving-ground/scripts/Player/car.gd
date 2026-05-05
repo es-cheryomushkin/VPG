@@ -11,24 +11,27 @@ const PIXELS_PER_METER : float = 100
 # ============================================================
 @export var is_player := true
 @export var is_pedestrian := false
-@export var mass_kg : float = 1500.0
-@export var engine_force_N : float = 4500.0
-@export var drag_coefficient : float = 0.35
-@export var rolling_resistance : float = 12.0
-@export var max_steer_angle_rad : float = 0.6
-@export var wheel_base_m : float = 2.7
+@export var ai_controller: AICarController = null
+@export var mass_kg : float = 1500.0                # масса
+@export var engine_force_N : float = 4500.0         # сила тяги
+@export var drag_coefficient : float = 0.70         # аэродинамическое сопротивление
+@export var rolling_resistance : float = 30.0       # сопротивление качению
+@export var max_steer_angle_rad : float = 0.6       # макс. угол поворота колёс
+@export var wheel_base_m : float = 2.7              # колёсная база
+@export var brake_force_N : float = 8000.0          # тормозная сила
 
 # ============================================================
 # Переменные состояния
 # ============================================================
 var speed_ms : float = 0.0           # продольная скорость (положительная = вперёд)
-var heading_rad : float = 0.0        # угол направления машины (куда смотрит капот)
+var heading_rad : float = 0.0        # угол направления кузова
 
 # ============================================================
 # Управление (входные сигналы)
 # ============================================================
 var throttle_input : float = 0.0     # 0..1 (вперёд)
 var reverse_input : float = 0.0      # 0..1 (назад)
+var brake_input : float = 0.0        # 0..1 (торможение)
 var steer_input : float = 0.0        # -1..1 (поворот)
 
 # ============================================================
@@ -37,7 +40,7 @@ var steer_input : float = 0.0        # -1..1 (поворот)
 var collision_solver = null
 var speed_label : Label = null
 var _collision_cooldowns: Dictionary = {}  # instance_id -> время до следующего столкновения
-const COLLISION_COOLDOWN := 0.3  # секунд между столкновениями одной пары
+const COLLISION_COOLDOWN := 0.3            # секунд между столкновениями одной пары
 
 # Счётчик кадров для проверки столкновений стоячей машины
 var _stationary_check_counter := 0
@@ -95,7 +98,19 @@ func _physics_process(delta: float):
 	if is_player:
 		throttle_input = 1.0 if Input.is_action_pressed("move_forward") else 0.0
 		reverse_input = 1.0 if Input.is_action_pressed("move_backward") else 0.0
+		brake_input = 1.0 if Input.is_action_pressed("brake") else 0.0
 		steer_input = Input.get_axis("steer_left", "steer_right")
+	elif ai_controller != null:
+		var ctrl = ai_controller.get_controls()
+		throttle_input = ctrl.throttle
+		reverse_input = 0.0  # AI пока не использует задний ход
+		brake_input = ctrl.brake
+		steer_input = ctrl.steer
+	else:
+		throttle_input = 0.0
+		reverse_input = 0.0
+		brake_input = 0.0
+		steer_input = 0.0
 	
 	# 2. Обновить физику
 	_update_physics(delta)
@@ -180,17 +195,21 @@ func _check_while_stationary():
 # ============================================================
 func _update_physics(delta: float):
 	var drive_force = throttle_input * engine_force_N
-	var reverse_force = -reverse_input * engine_force_N * 0.5
-	
+	var reverse_force = -reverse_input * engine_force_N * 0.7
+	var brake_force = 0.0
+	if brake_input > 0:
+		# Тормозная сила всегда против движения
+		brake_force = -sign(speed_ms) * brake_force_N if abs(speed_ms) > 0.1 else 0.0
+
 	var drag_force = -drag_coefficient * speed_ms * abs(speed_ms)
 	var rolling_force = -rolling_resistance * speed_ms
-	
-	var net_force = drive_force + reverse_force + drag_force + rolling_force
+
+	var net_force = drive_force + reverse_force + brake_force + drag_force + rolling_force
 	
 	var acceleration = net_force / mass_kg
 	speed_ms += acceleration * delta
 	
-	var max_forward_speed = 16.0
+	var max_forward_speed = 17.0  # * 3.6 ~ 60 km/h
 	var max_reverse_speed = 5.0
 	speed_ms = clamp(speed_ms, -max_reverse_speed, max_forward_speed)
 	
@@ -291,5 +310,5 @@ func _log_collision(result: Dictionary, v_a_old: Vector2, v_b_old: Vector2, othe
 func _update_speedometer():
 	if not speed_label:
 		return
-	var kmh = abs(speed_ms) * 3.6
+	var kmh = speed_ms * 3.6
 	speed_label.text = "%.0f km/h" % kmh

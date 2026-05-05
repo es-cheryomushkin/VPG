@@ -30,6 +30,7 @@ static func load_scenario(file_name: String, parent_node: Node, existing_ego: Ca
 
 	var data = json.get_data()
 
+	@warning_ignore("shadowed_variable_base_class")
 	var name = ""
 	var description = ""
 	var entities_data = []
