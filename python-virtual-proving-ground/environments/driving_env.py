@@ -1,3 +1,6 @@
+from .simulation_state import SimulationState, load_current_scenario
+from .sim.physics_engine import FIXED_DT, MAX_EPISODE_TIME
+
 class DrivingEnv:
     def __init__(self, scenario_files):
         self.state = SimulationState()

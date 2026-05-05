@@ -5,7 +5,9 @@ import math
 # BASE ENTITY
 # =========================
 class BaseEntity:
-
+    """
+    Base class for all entities in the simulation.
+    """
     def __init__(self, data):
         self.type = data["type"]
         self.mass = data.get("mass", 1)
@@ -48,7 +50,9 @@ class BaseEntity:
 # CAR
 # =========================
 class Car(BaseEntity):
-
+    """
+    Car model with temporary internal kinematics and circular collision geometry.
+    """
     def __init__(self, data):
         super().__init__(data)
         self.speed = math.hypot(self.vx, self.vy)
@@ -67,6 +71,7 @@ class Car(BaseEntity):
         self.steer = 0
 
     def update(self, throttle, brake, steer, dt):
+        # should be moved to physics module, but for now it's here for simplicity
         # steering smoothing
         self.steer += (steer - self.steer) * 5 * dt
 
@@ -111,7 +116,9 @@ class Car(BaseEntity):
 # PEDESTRIAN
 # =========================
 class Pedestrian(BaseEntity):
-
+    """
+    Simple entity representing a pedestrian, with a single circular collision shape.
+    """
     def __init__(self, data):
         super().__init__(data)
         self.radius = 8

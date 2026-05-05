@@ -42,18 +42,19 @@ running = True
 scenarioState = SimulationState()
 """
 contains all of the:
-entities = []
-controlledCar = None
-engine = None
-scenario_files = []
-scenario_index = 0
-episode_time = 0.0
-MODE = "manual"
-HEADLESS = False
+    entities = []
+    controlledCar = None
+    engine = None
+    scenario_files = []
+    scenario_index = 0
+    episode_time = 0.0
+    MODE = "manual"
+    HEADLESS = False
 """
 
 # 60 Hz physics
-FIXED_DT = 1.0 / 60.0 
+simulation_frames = 60.0
+FIXED_DT = 1.0 / simulation_frames 
 
  # prevents spiral of death if rendering is too slow
 accumulator = 0.0
@@ -61,6 +62,7 @@ MAX_ACCUMULATED_TIME = 0.25
 
 def main():
     global scenarioState , accumulator, running
+    # previously used:
     # global episode_time, entities, controlledCar, engine, accumulator, running, scenario_index
     scenarioState.scenario_files = load_all_scenarios(args.scenario)
 

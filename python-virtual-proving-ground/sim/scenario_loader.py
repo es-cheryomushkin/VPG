@@ -17,7 +17,7 @@ class SimulationState:
 
 def load_scenario(path):
     """
-    Loads scenario by cycling through all entities. Gets first car class as ego car.
+    Loads scenario by cycling through all entities. Gets first car class as ego (controlled) car.
     """
     with open(path) as f:
         data = json.load(f)
