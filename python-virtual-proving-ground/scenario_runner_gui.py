@@ -7,7 +7,7 @@ import random
 import configparser
 
 from sim.entities import BaseEntity, Car, Pedestrian
-from sim.scenario_loader import load_scenario
+from sim.scenario_loader import load_scenario, SimulationState
 from sim.physics_engine import PhysicsEngine
 from sim.draw import draw
 
@@ -38,32 +38,41 @@ uiFont = pygame.font.SysFont(None, FONT_SIZE)
 
 MAX_EPISODE_TIME = 10.0  # seconds per scenario
 
-pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-clock = pygame.time.Clock()
-
-entities = []
-controlledCar = None
-engine = None
-scenario_files = []
-scenario_index = 0
-episode_time = 0.0
-MODE = "manual"
-HEADLESS = False
+running = True
+scenarioState = SimulationState()
+"""
+contains all of the:
+    entities = []
+    controlledCar = None
+    engine = None
+    scenario_files = []
+    scenario_index = 0
+    episode_time = 0.0
+    MODE = "manual"
+    HEADLESS = False
+"""
 
 # 60 Hz physics
-FIXED_DT = 1.0 / 60.0  
+simulation_frames = 60.0
+FIXED_DT = 1.0 / simulation_frames 
+
  # prevents spiral of death if rendering is too slow
 accumulator = 0.0
 MAX_ACCUMULATED_TIME = 0.25 
 
 def main():
-    global episode_time, entities, controlledCar, engine, accumulator, running, scenario_index
-    running = True
-    episode_time = 0.0
+    global scenarioState , accumulator, running
+    # previously used:
+    # global episode_time, entities, controlledCar, engine, accumulator, running, scenario_index
+    scenarioState.scenario_files = load_all_scenarios(args.scenario)
 
-    # Initial load
-    load_current_scenario()
+    print("FILES:", scenarioState.scenario_files)
+    print("INDEX:", scenarioState.scenario_index)
+
+    running = True
+    scenarioState.episode_time = 0.0
+    load_current_scenario(scenarioState)
+
 
     while running:
         frame_dt = deltaTimeBetweenFramesMs()
@@ -74,7 +83,7 @@ def main():
 
         # input/events still per frame
         if not HEADLESS:
-            if not handle_events():
+            if not handle_events(scenarioState):
                 break
 
         keys = pygame.key.get_pressed() if not HEADLESS else []
@@ -85,35 +94,31 @@ def main():
 
             # Control (IMPORTANT: computed per physics step, not render step)
             if MODE == "manual" and not HEADLESS:
-                steer, throttle, brake = manual_control(keys, controlledCar, FIXED_DT)
+                steer, throttle, brake = manual_control(keys, FIXED_DT)
             else:
-                steer, throttle, brake = simple_ai_policy(controlledCar, entities)
+                steer, throttle, brake = simple_ai_policy(scenarioState)
 
-            try:
-                controlledCar.update(throttle, brake, steer, FIXED_DT)
-                engine.step(FIXED_DT)
-            except Exception as e:
-                # temporarily accepting due to edge cases
-                print(f"Error during physics update: {e}")
-                # running = False
-                break
+            # !!! needs urgent replacement with moving logic of acceleration/turning etc into the physics engine
+            scenarioState.controlledCar.update(throttle, brake, steer, FIXED_DT)
+            # because that's just bad form
 
-            episode_time += FIXED_DT
+            scenarioState.engine.step(FIXED_DT)
+            scenarioState.episode_time += FIXED_DT
 
-            if episode_time > MAX_EPISODE_TIME:
-                scenario_index = (scenario_index + 1) % len(scenario_files)
-                reset_scenario()
+            if scenarioState.episode_time > MAX_EPISODE_TIME:
+                scenarioState.scenario_index = (scenarioState.scenario_index + 1) % len(scenario_files)
+                reset_scenario(scenarioState)
                 break
 
         # Auto-cycle scenarios
-        if episode_time > MAX_EPISODE_TIME:
-            scenario_index = (scenario_index + 1) % len(scenario_files)
-            reset_scenario()
+        if scenarioState.episode_time > MAX_EPISODE_TIME:
+            scenarioState.scenario_index = (scenarioState.scenario_index + 1) % len(scenario_files)
+            reset_scenario(scenarioState)
 
         # Draw / log
         if not HEADLESS:
             screen.fill((20, 20, 30))
-            draw_ui()
+            draw_ui(scenarioState)
             pygame.display.flip()
         else:
             log_headless()
@@ -174,33 +179,37 @@ def transform_scenario(entities):
     return entities
 
 
-def load_current_scenario():
+def load_current_scenario(scenarioState):
     """Load the current scenario and initialize entities, controlledCar, and physics engine."""
-    global entities, controlledCar, engine
-    path = scenario_files[scenario_index]
-    entities, controlledCar, scenarioName, scenarioDescription = load_scenario(path)
+    path = scenarioState.scenario_files[scenarioState.scenario_index]
 
-    # Convert dicts to objects
-    for i, e in enumerate(entities):
+    entities, controlledCar, _, _ = load_scenario(path)
+
+    new_entities = []
+    new_controlled = None
+
+    for e in entities:
         if e.type == "car":
             new_e = Car(e.__dict__)
-            entities[i] = new_e
-
             if e == controlledCar:
-                controlledCar = new_e
-
+                new_controlled = new_e
         elif e.type == "pedestrian":
-            entities[i] = Pedestrian(e.__dict__)
+            new_e = Pedestrian(e.__dict__)
+        else:
+            new_e = e
 
-    entities = transform_scenario(entities)
-    engine = PhysicsEngine(entities)
-    return entities, controlledCar, engine
+        new_entities.append(new_e)
+
+    scenarioState.entities = transform_scenario(new_entities)
+    scenarioState.controlledCar = new_controlled
+    scenarioState.engine = PhysicsEngine(scenarioState.entities)
+    scenarioState.episode_time = 0.0
 
 
 # ==========================
 # CONTROL
 # ==========================
-def manual_control(keys, controlledCar, FIXED_DT):
+def manual_control(keys, FIXED_DT):
     """Return (steer, throttle, brake) for manual input."""
     steer = throttle = brake = 0
     if keys[pygame.K_a]: steer = -1
@@ -210,55 +219,61 @@ def manual_control(keys, controlledCar, FIXED_DT):
     return steer, throttle, brake
 
 
-def simple_ai_policy(controlledCar, entities):
+def simple_ai_policy(controlledCar, scenarioState):
     """Placeholder AI policy, returns (steer, throttle, brake)."""
-    return 1, 0, 1  # Always brake for now
+    # should take data from the model
+    return 0, 0, 1  # Always brake for now
 
 
-def handle_events():
+def handle_events(scenarioState):
     """Process pygame input events (keyboard/mouse)."""
-    global running, MODE, scenario_index
     for event in pygame.event.get():
-        if event.type == pygame.QUIT: 
+        if event.type == pygame.QUIT:
             return False
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 return False
             elif event.key == pygame.K_TAB:
-                MODE = "ai" if MODE == "manual" else "manual"
+                scenarioState.mode = "ai" if scenarioState.mode == "manual" else "manual"
             elif event.key == pygame.K_r:
-                reset_scenario()
+                reset_scenario(scenarioState)
             elif event.key == pygame.K_n:
-                scenario_index = (scenario_index + 1) % len(scenario_files)
-                reset_scenario()
+                scenarioState.scenario_index = (scenarioState.scenario_index + 1) % len(scenarioState.scenario_files)
+                reset_scenario(scenarioState)
+
     return True
 
-def reset_scenario():
+def reset_scenario(scenarioState):
     """Reload the current scenario and reset episode timer."""
-    global episode_time, entities, controlledCar, engine
-    load_current_scenario()
-    episode_time = 0.0
+    load_current_scenario(scenarioState)
+    scenarioState.episode_time = 0.0
 
 
 # DRAWING
-def draw_ui():
+def draw_ui(scenarioState):
     """Draw overlay text showing current mode, time, etc."""
     draw(
         screen,
-        entities,
-        controlledCar,
-        mode=MODE,
+        scenarioState.entities,
+        scenarioState.controlledCar,
+        mode=scenarioState.mode,
         font=uiFont,
-        episode_time=episode_time,
+        episode_time=scenarioState.episode_time,
         max_time=MAX_EPISODE_TIME,
-        scenario_index=scenario_index
+        scenario_index=scenarioState.scenario_index
     )
 
 
-def log_headless():
-    """Print scenario progress when running headless."""
-    print(f"[Scenario {scenario_index+1}] t={episode_time:.2f}s, controlledCar pos=({controlledCar.x:.1f},{controlledCar.y:.1f}), speed={controlledCar.speed:.1f}")
-
+def log_headless(scenarioState):
+    """
+    Logs the car states when launched headless.
+    """
+    ego = scenarioState.controlledCar
+    print(f"[Scenario {scenarioState.scenario_index+1}] "
+          f"t={scenarioState.episode_time:.2f}s, "
+          f"pos=({ego.x:.1f},{ego.y:.1f}), "
+          f"speed={ego.speed:.1f}")
 
 
 

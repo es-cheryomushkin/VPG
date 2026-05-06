@@ -83,7 +83,7 @@ def main():
 # Saving / Loading
 # ----------------------------
 def save_scenario():
-    """Save scenario with overwrite confirmation."""
+    """Save scenario, with confirmation required if overwriting."""
     global overwrite_prompt, scenario_name
 
     os.makedirs("scenarios", exist_ok=True)
@@ -425,4 +425,4 @@ def draw_ui():
 
 
 if __name__ == "__main__":
-    main()
+    main() 

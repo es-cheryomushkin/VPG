@@ -5,7 +5,7 @@ import math
 # ==========================
 MULTIPLIER = 10.0
 
-FRICTION_LINEAR = 0.98          # global drag
+FRICTION_LINEAR = 1.0         # global drag
 RESTIUTION = 0.03               # very low bounce (cars don't bounce)
 
 MAX_IMPULSE = 6.0               # prevents explosions
@@ -16,6 +16,16 @@ SLOP = 0.02                     # penetration tolerance
 LATERAL_FRICTION = 0.2          # kills sideways sliding
 FORWARD_DAMPING = 0.995         # keeps forward motion stable
 
+IMPACT_DAMPING = 0.7
+COLLISION_FRICTION = 0.8
+RESTIUTION = 0.0
+
+# ego car
+MAX_FORWARD_SPEED = 25.0
+MAX_REVERSE_SPEED = -8.0
+
+REVERSE_STABILITY = 0.5     # less grip when reversing
+SPIN_DAMPING = 0.7         # kills sudden flips
 
 class PhysicsEngine:
     def __init__(self, entities):
@@ -51,6 +61,61 @@ class PhysicsEngine:
             vy *= FRICTION_LINEAR
 
             self._set_velocity(e, vx, vy)
+
+    def apply_vehicle_dynamics(self, dt):
+        for e in self.entities:
+            if e.type != "car":
+                continue
+
+            vx, vy = e.get_velocity()
+
+            fx = math.cos(e.heading)
+            fy = math.sin(e.heading)
+
+            # forward velocity
+            forward = vx * fx + vy * fy
+
+            # ==========================
+            # ENGINE / BRAKE
+            # ==========================
+            force = e.throttle * e.engine_force
+
+            if e.brake > 0:
+                if forward > 0:
+                    force -= e.brake_force * e.brake
+                else:
+                    force += e.brake_force * e.brake
+
+            # ==========================
+            # SPEED LIMITING
+            # ==========================
+            if forward > e.max_forward_speed:
+                force = min(force, 0)
+            if forward < e.max_reverse_speed:
+                force = max(force, 0)
+
+            # ==========================
+            # APPLY FORCE
+            # ==========================
+            vx += fx * force * dt
+            vy += fy * force * dt
+
+            # ==========================
+            # DRAG
+            # ==========================
+            vx *= (1 - e.drag)
+            vy *= (1 - e.drag)
+
+            # ==========================
+            # STEERING
+            # ==========================
+            speed = math.hypot(vx, vy)
+            stability = min(1.0, speed / 5.0)
+
+            e.heading += e.steer * e.turn_rate * stability * dt
+
+            e.set_velocity(vx, vy)
+
 
     # ==========================
     # COLLISIONS
@@ -115,50 +180,77 @@ class PhysicsEngine:
                 cx = correction * nx
                 cy = correction * ny
 
-        a.x -= cx / ma
-        a.y -= cy / ma
-        b.x += cx / mb
-        b.y += cy / mb
+                a.x -= cx / ma
+                a.y -= cy / ma
+                b.x += cx / mb
+                b.y += cy / mb
 
-        # ==========================
-        # IMPULSE (CLAMPED)
-        # ==========================
-        # j = -(1 + RESTIUTION) * rel_n
-        j = max(-MAX_IMPULSE, min(MAX_IMPULSE, j))
+                # ==========================
+                # NORMAL IMPULSE
+                # ==========================
+                j = -(1 + RESTIUTION) * rel_n
+                j /= (1/ma + 1/mb)
 
-        impulse_a = j / ma
-        impulse_b = j / mb
+                j = max(-MAX_IMPULSE, min(MAX_IMPULSE, j))
 
-        av_n += impulse_a
-        bv_n -= impulse_b
+                impulse_a = j / ma
+                impulse_b = j / mb
 
-        # ==========================
-        # RECONSTRUCT VELOCITY
-        # ==========================
-        avx = av_tx + av_n * nx
-        avy = av_ty + av_n * ny
+                av_n += impulse_a
+                bv_n -= impulse_b
 
-        bvx = bv_tx + bv_n * nx
-        bvy = bv_ty + bv_n * ny
+                # ==========================
+                # TANGENTIAL (FRICTION) IMPULSE
+                # ==========================
+                # relative tangential velocity
+                rel_tx = av_tx - bv_tx
+                rel_ty = av_ty - bv_ty
 
-        # ==========================
-        # CAR STABILITY FIX
-        # (kills sideways chaos)
-        # ==========================
-        avx, avy = self._apply_car_stability(a, avx, avy)
-        bvx, bvy = self._apply_car_stability(b, bvx, bvy)
+                jt = -(rel_tx * nx + rel_ty * ny)  # projected tangential magnitude
+                jt /= (1/ma + 1/mb)
 
-        self._set_velocity(a, avx, avy)
-        self._set_velocity(b, bvx, bvy)
+                # Coulomb-style friction clamp
+                jt = max(-j * COLLISION_FRICTION, min(j * COLLISION_FRICTION, jt))
 
-        # ==========================
-        # DEBUG LOG
-        # ==========================
-        self.last_collision = {
-            "impulse": j,
-            "overlap": overlap,
-            "entities": (a, b)
-        }
+                # apply friction impulse
+                av_tx += jt * nx / ma
+                av_ty += jt * ny / ma
+
+                bv_tx -= jt * nx / mb
+                bv_ty -= jt * ny / mb
+
+                # ==========================
+                # IMPACT DAMPING (VERY IMPORTANT)
+                # ==========================
+                av_n *= IMPACT_DAMPING
+                bv_n *= IMPACT_DAMPING
+
+                # ==========================
+                # RECONSTRUCT VELOCITY
+                # ==========================
+                avx = av_tx + av_n * nx
+                avy = av_ty + av_n * ny
+
+                bvx = bv_tx + bv_n * nx
+                bvy = bv_ty + bv_n * ny
+
+                # ==========================
+                # CAR STABILITY FIX
+                # ==========================
+                avx, avy = self._apply_car_stability(a, avx, avy)
+                bvx, bvy = self._apply_car_stability(b, bvx, bvy)
+
+                self._set_velocity(a, avx, avy)
+                self._set_velocity(b, bvx, bvy)
+
+                # ==========================
+                # DEBUG LOG
+                # ==========================
+                self.last_collision = {
+                    "impulse": j,
+                    "overlap": overlap,
+                    "entities": (a, b)
+                }
 
     # ==========================
     # CAR STABILITY MODEL
@@ -167,26 +259,43 @@ class PhysicsEngine:
         if e.type != "car":
             return vx, vy
 
-        # forward direction (car heading)
+        # forward direction
         fx = math.cos(e.heading)
         fy = math.sin(e.heading)
 
-        # forward / lateral decomposition
+        # decompose velocity
         forward = vx * fx + vy * fy
         lateral = vx * (-fy) + vy * fx
 
-        # kill sideways motion (tire grip model)
-        lateral *= LATERAL_FRICTION
+        # ==========================
+        # SPEED CLAMP (VERY IMPORTANT)
+        # ==========================
+        if forward > MAX_FORWARD_SPEED:
+            forward = MAX_FORWARD_SPEED
+        if forward < MAX_REVERSE_SPEED:
+            forward = MAX_REVERSE_SPEED
 
-        # stabilize forward motion
-        forward *= FORWARD_DAMPING
+        # ==========================
+        # REVERSE HANDLING
+        # ==========================
+        if forward < 0:
+            # less grip when reversing (prevents spin flips)
+            lateral *= LATERAL_FRICTION * REVERSE_STABILITY
 
-        # rebuild velocity
+            # extra damping so it doesn't "whip"
+            forward *= FORWARD_DAMPING * SPIN_DAMPING
+        else:
+            # normal forward driving
+            lateral *= LATERAL_FRICTION
+            forward *= FORWARD_DAMPING
+
+        # ==========================
+        # REBUILD VELOCITY
+        # ==========================
         vx = fx * forward - fy * lateral
         vy = fy * forward + fx * lateral
 
         return vx, vy
-
     # ==========================
     # HELPERS
     # ==========================
