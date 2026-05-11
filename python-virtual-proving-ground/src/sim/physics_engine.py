@@ -5,7 +5,7 @@ import math
 # ==========================
 MULTIPLIER = 10.0
 
-FRICTION_LINEAR = 1.0         # global drag
+FRICTION_LINEAR = 1.0           # global drag
 RESTIUTION = 0.03               # very low bounce (cars don't bounce)
 
 MAX_IMPULSE = 6.0               # prevents explosions

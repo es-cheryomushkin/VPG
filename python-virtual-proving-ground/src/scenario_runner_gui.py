@@ -179,19 +179,12 @@ def load_current_scenario(simulationState):
     """Load the current scenario and initialize entities, controlledCar, and physics engine."""
     path = simulationState.scenario_files[simulationState.scenario_index]
 
-    (
-    entities,
-    roads,
-    controlledCar,
-    background,
-    scenarioName,
-    scenarioDescription
-    ) = load_scenario(path)
+    scenario = load_scenario(path)
 
     new_entities = []
     new_controlled = None
 
-    for e in entities:
+    for e in scenario.entities:
         if e.type == "car":
             new_e = Car(e.__dict__)
             if e == controlledCar:
