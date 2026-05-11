@@ -7,7 +7,6 @@
 
 # gd-plug
 .plugged/
+addons/
 
-# Godot addons — игнорируем всё, кроме самого gd-plug
-addons/*
-!addons/gd-plug/
+.vscode/

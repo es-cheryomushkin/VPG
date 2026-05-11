@@ -1,16 +1,29 @@
 extends Node2D
 
+## Maximum scenario time in seconds.
+## Each scenario will play maximum 10 seconds and then
+## switch to next one
+const MAX_EPISODE_TIME := 10.0
+
+## Should we play scenarios or show default scene?
+##
+## Default scene contains ego car (target car that is controlled
+## from keyboard) and other car that meves on a track.
+## Default track is ellipse-like form.
 @export var enable_scenarios := true
 
+## Link to node with name "Cars" on main scene
 @onready var _cars_container := $Cars
+## Link to scenario label
 @onready var _scenario_label := $UI/ScenarioLabel
 
-var current_scenario_index := 0
 var scenario_files: PackedStringArray
-var scenario_entities: Array[Car2D] = []
 
+var current_scenario_index := 0
+var current_scenario_entities: Array[Car2D] = []
+
+## current scenario time
 var episode_time := 0.0
-const MAX_EPISODE_TIME := 10.0
 
 func _ready():
 	$Player/Car.add_to_group("cars")
@@ -61,13 +74,13 @@ func load_scenario_by_index(index: int):
 	_clear_cars()
 	var player_car := $Player/Car
 	var result := ScenarioLoader.load_scenario(scenario_files[index], _cars_container, player_car)
-	scenario_entities.assign(result.entities)
-	print("Loaded: \"%s\" — %d cars" % [scenario_files[index], scenario_entities.size()])
+	current_scenario_entities.assign(result.entities)
+	print("Loaded: \"%s\" — %d cars" % [scenario_files[index], current_scenario_entities.size()])
 
 func _clear_cars():
 	for child in _cars_container.get_children():
 		child.queue_free()
-	scenario_entities.clear()
+	current_scenario_entities.clear()
 
 func _update_scenario_ui():
 	if not _scenario_label or not enable_scenarios:
