@@ -76,7 +76,7 @@ class Car(BaseEntity):
         self.steer += (steer - self.steer) * 5 * dt
 
         # acceleration
-        accel = 200 * throttle - 300 * brake
+        accel = 80 * throttle - 200 * brake
         self.speed += accel * dt
 
         # drag
