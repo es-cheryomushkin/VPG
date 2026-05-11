@@ -6,7 +6,8 @@ class Scenario:
     """
     Представляет загруженный сценарий симуляции.
     """
-    def __init__(self, name: str, description: str, entities: list[BaseEntity], roads: list[Road], background: str):
+    def __init__(self, entities: list[BaseEntity], roads: list[Road],
+                 background: str, name: str, description: str, ):
         self.name = name     
         """ Scenario name """          
         self.description = description  
@@ -14,10 +15,18 @@ class Scenario:
         self.entities = entities      
         """ All cars or pedestrians in scenario (including ego car with index 0) """ 
         self.roads = roads     
-        """ Roads that are displayed on map. Now used for visualization only"""              
+        """ Roads that are displayed on map. Currently used for visualization only"""              
         self.background = background  
         """ Backgound image file name"""
 
+        """
+    return Scenario(
+        entities,
+        roads,
+        background,
+        name,
+        description
+    )"""
 
     @property
     def ego(self):

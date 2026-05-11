@@ -54,7 +54,6 @@ def load_scenario(path: str):
     return Scenario(
         entities,
         roads,
-        ego,
         background,
         name,
         description

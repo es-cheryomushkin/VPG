@@ -64,6 +64,7 @@ class PhysicsEngine:
 
     def apply_vehicle_dynamics(self, dt):
         for e in self.entities:
+
             if e.type != "car":
                 continue
 
@@ -72,47 +73,68 @@ class PhysicsEngine:
             fx = math.cos(e.heading)
             fy = math.sin(e.heading)
 
-            # forward velocity
-            forward = vx * fx + vy * fy
+            # =========================================
+            # FORWARD VELOCITY
+            # =========================================
+            forward_speed = vx * fx + vy * fy * MULTIPLIER
 
-            # ==========================
-            # ENGINE / BRAKE
-            # ==========================
-            force = e.throttle * e.engine_force
+            # =========================================
+            # ENGINE FORCE
+            # =========================================
+            engine_accel = 12.0
+            brake_accel = 20.0
 
-            if e.brake > 0:
-                if forward > 0:
-                    force -= e.brake_force * e.brake
-                else:
-                    force += e.brake_force * e.brake
+            accel = e.throttle * engine_accel
 
-            # ==========================
-            # SPEED LIMITING
-            # ==========================
-            if forward > e.max_forward_speed:
-                force = min(force, 0)
-            if forward < e.max_reverse_speed:
-                force = max(force, 0)
+            # braking opposes motion
+            if abs(forward_speed) > 0.1:
+                accel -= math.copysign(
+                    e.brake * brake_accel,
+                    forward_speed
+                )
+            else:
+                accel -= e.brake * brake_accel
 
-            # ==========================
-            # APPLY FORCE
-            # ==========================
-            vx += fx * force * dt
-            vy += fy * force * dt
+            # =========================================
+            # APPLY ACCELERATION
+            # =========================================
+            forward_speed += accel * dt
 
-            # ==========================
+            # =========================================
             # DRAG
-            # ==========================
-            vx *= (1 - e.drag)
-            vy *= (1 - e.drag)
+            # =========================================
+            drag = 0.4
+            forward_speed *= (1.0 - drag * dt)
 
-            # ==========================
+            # =========================================
+            # SPEED LIMITS
+            # =========================================
+            max_forward = 30.0
+            max_reverse = -10.0
+
+            forward_speed = max(
+                max_reverse,
+                min(max_forward, forward_speed)
+            )
+
+            # =========================================
             # STEERING
-            # ==========================
-            speed = math.hypot(vx, vy)
-            stability = min(1.0, speed / 5.0)
+            # =========================================
+            steer_angle = e.steer * 0.6
 
-            e.heading += e.steer * e.turn_rate * stability * dt
+            if abs(steer_angle) > 0.001:
+
+                turn_radius = e.wheelbase / math.tan(steer_angle)
+
+                angular_velocity = forward_speed / turn_radius
+
+                e.heading += angular_velocity * dt
+
+            # =========================================
+            # REBUILD VELOCITY VECTOR
+            # =========================================
+            vx = math.cos(e.heading) * forward_speed
+            vy = math.sin(e.heading) * forward_speed
 
             e.set_velocity(vx, vy)
 

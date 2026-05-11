@@ -68,32 +68,14 @@ class Car(BaseEntity):
         self.rear_offset = 15
 
         # control state
-        self.steer = 0
+        self.throttle = data.get("throttle", 0.0)
+        self.brake = data.get("brake", 0.0)
+        self.steer = data.get("steer", 0.0)
 
     def update(self, throttle, brake, steer, dt):
-        # should be moved to physics module, but for now it's here for simplicity
-        # steering smoothing
-        self.steer += (steer - self.steer) * 5 * dt
-
-        # acceleration
-        accel = 80 * throttle - 200 * brake
-        self.speed += accel * dt
-
-        # drag
-        self.speed *= 0.995
-
-        # turning
-        if abs(self.steer) > 0.01:
-            turn_radius = self.wheelbase / math.tan(self.steer)
-            angular_velocity = self.speed / turn_radius
-        else:
-            angular_velocity = 0
-
-        self.heading += angular_velocity * dt
-
-        # update position
-        self.x += math.cos(self.heading) * self.speed * dt
-        self.y += math.sin(self.heading) * self.speed * dt
+        self.throttle = throttle
+        self.brake = brake
+        self.steer = steer
 
     def get_velocity(self):
         return (math.cos(self.heading) * self.speed, math.sin(self.heading) * self.speed)

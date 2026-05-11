@@ -1,2 +1,31 @@
-# build configurations and such
-# write how to use it to readme, with dependencies up to python version etc
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Virtual Proving Ground"
+version = "0.1.0"
+description = "Vehicle Proving Ground simulation and RL environment"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+    "pygame",
+    "numpy",
+]
+
+[project.optional-dependencies]
+rl = [
+    "gymnasium",
+    "stable-baselines3",
+    "torch"
+]
+
+dev = [
+    "pytest",
+    "ruff",
+    "black"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]

@@ -8,7 +8,9 @@ import configparser
 import logging
 
 from sim.entities import BaseEntity, Car, Pedestrian
-from sim.scenario_loader import load_scenario, SimulationState
+from sim.scenario import Scenario
+from sim.scenario_loader import load_scenario
+from sim.simulation_state import SimulationState
 from sim.physics_engine import PhysicsEngine
 from sim.draw import draw
 
@@ -79,10 +81,10 @@ def main():
         if not HEADLESS:
             if not handle_events(simulationState):
                 break
+            keys = pygame.key.get_pressed()
+            MODE = simulationState.mode
 
-        keys = pygame.key.get_pressed() if not HEADLESS else []
-
-        # ----- PHYSICS LOOP -----
+        # PHYSICS LOOP
         while accumulator >= FIXED_DT:
             accumulator -= FIXED_DT
 
@@ -91,12 +93,19 @@ def main():
                 steer, throttle, brake = manual_control(keys, FIXED_DT)
             else:
                 steer, throttle, brake = simple_ai_policy(simulationState)
+            simulationState.controlledCar.update(throttle, brake, steer, FIXED_DT)
 
             # update cars moving according to control and physics
-            simulationState.controlledCar.update(throttle, brake, steer, FIXED_DT)
-            for car in simulationState.entities:
-                if car.type == "car" and car != simulationState.controlledCar:
-                    car.update(1, 0, 0, FIXED_DT)
+            for e in simulationState.entities:
+                if e.type != "car":
+                    continue
+                else:
+                    e.update(
+                        getattr(e, "throttle", 0.0),
+                        getattr(e, "brake", 0.0),
+                        getattr(e, "steer", 0.0),
+                        FIXED_DT
+                    )
 
             simulationState.engine.step(FIXED_DT)
             simulationState.episode_time += FIXED_DT
@@ -179,22 +188,20 @@ def load_current_scenario(simulationState):
     """Load the current scenario and initialize entities, controlledCar, and physics engine."""
     path = simulationState.scenario_files[simulationState.scenario_index]
 
-    scenario = load_scenario(path)
+    scenario = load_scenario(path) # load scenario from file
 
     new_entities = []
-    new_controlled = None
-
     for e in scenario.entities:
         if e.type == "car":
             new_e = Car(e.__dict__)
-            if e == controlledCar:
-                new_controlled = new_e
         elif e.type == "pedestrian":
             new_e = Pedestrian(e.__dict__)
         else:
             new_e = e
 
         new_entities.append(new_e)
+    new_controlled = new_entities[0]  # first car is ego
+    # new_controlled = scenario.ego
 
     simulationState.entities = transform_scenario(new_entities)
     simulationState.controlledCar = new_controlled
@@ -215,10 +222,10 @@ def manual_control(keys, FIXED_DT):
     return steer, throttle, brake
 
 
-def simple_ai_policy(controlledCar, simulationState):
+def simple_ai_policy(simulationState):
     """Placeholder AI policy, returns (steer, throttle, brake)."""
     # should take data from the model
-    return 0, 0, 1  # Always brake for now
+    return 1, 1, 0  # Always brake for now
 
 
 def handle_events(simulationState):

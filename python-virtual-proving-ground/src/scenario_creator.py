@@ -25,17 +25,24 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 uiFont = pygame.font.SysFont(None, FONT_SIZE)
 
+camera_x = 0
+camera_y = 0
+
 # =========================================================
 # GLOBAL STATE
 # =========================================================
 entities = []
 roads = []
 
+
 selected_entity = None
 dragging = False
 
 current_speed = 0
 current_heading = 0
+current_throttle = 0.0
+current_brake = 0.0
+current_steer = 0.0
 
 modes = ["car", "pedestrian", "road"]
 mode_index = 0
@@ -94,6 +101,17 @@ def set_background(index):
         (WIDTH, HEIGHT)
     )
 
+def world_to_screen(x, y):
+    return (
+        x - camera_x + WIDTH // 2,
+        y - camera_y + HEIGHT // 2
+    )
+
+def screen_to_world(x, y):
+    return (
+        x + camera_x - WIDTH // 2,
+        y + camera_y - HEIGHT // 2
+    )
 
 # =========================================================
 # MAIN LOOP
@@ -190,14 +208,24 @@ def save_scenario():
     entity_data = []
 
     for e in entities_sorted:
+
         entity_data.append({
             "type": e.type,
+
             "x": e.x,
             "y": e.y,
+
             "vx": getattr(e, "vx", e.get_velocity()[0]),
             "vy": getattr(e, "vy", e.get_velocity()[1]),
+
             "heading": getattr(e, "heading", 0),
+
             "mass": getattr(e, "mass", 1),
+
+            # TRAFFIC CONTROL
+            "throttle": getattr(e, "throttle", 0.0),
+            "brake": getattr(e, "brake", 0.0),
+            "steer": getattr(e, "steer", 0.0),
         })
 
     data = {
@@ -296,12 +324,20 @@ def load_latest_scenario():
 def create_car(x, y):
     return Car({
         "type": "car",
+
         "x": x,
         "y": y,
+
         "vx": math.cos(current_heading) * current_speed,
         "vy": math.sin(current_heading) * current_speed,
+
         "heading": current_heading,
+
         "mass": 1500,
+
+        "throttle": current_throttle,
+        "brake": current_brake,
+        "steer": current_steer,
     })
 
 
@@ -349,12 +385,18 @@ def handle_events():
     global running
     global mode
     global mode_index
+
     global current_speed
     global current_heading
+    global current_throttle
+    global current_brake
+    global current_steer
+
     global input_mode
     global input_buffer
     global scenario_name
     global scenario_description
+    
     global selected_entity
     global dragging
     global overwrite_prompt
@@ -406,10 +448,10 @@ def handle_events():
                     mode_index = (mode_index + 1) % len(modes)
                     mode = modes[mode_index]
 
-                case pygame.K_BACKQUOTE:
+                case pygame.K_F5:
                     save_scenario()
 
-                case pygame.K_l:
+                case pygame.K_F9:
                     load_latest_scenario()
 
                 case pygame.K_DELETE:
@@ -430,14 +472,14 @@ def handle_events():
                         overwrite_prompt = False
                         save_scenario()
 
-                case pygame.K_n:
+                case pygame.K_F2:
                     if overwrite_prompt:
                         overwrite_prompt = False
 
                     input_mode = "name"
                     input_buffer = scenario_name
 
-                case pygame.K_t:
+                case pygame.K_F3:
                     input_mode = "description"
                     input_buffer = scenario_description
 
@@ -455,7 +497,8 @@ def handle_events():
             if input_mode:
                 continue
 
-            x, y = pygame.mouse.get_pos()
+            mx, my = pygame.mouse.get_pos()
+            x, y = screen_to_world(mx, my)
 
             # left click
             if event.button == 1:
@@ -526,6 +569,24 @@ def handle_events():
     if keys[pygame.K_d]:
         current_heading += 0.01
 
+    if keys[pygame.K_i]:
+        current_throttle = min(1.0, current_throttle + 0.01)
+
+    if keys[pygame.K_k]:
+        current_throttle = max(0.0, current_throttle - 0.01)
+
+    if keys[pygame.K_o]:
+        current_brake = min(1.0, current_brake + 0.01)
+
+    if keys[pygame.K_l]:
+        current_brake = max(0.0, current_brake - 0.01)
+
+    if keys[pygame.K_j]:
+        current_steer = max(-1.0, current_steer - 0.01)
+
+    if keys[pygame.K_u]:
+        current_steer = min(1.0, current_steer + 0.01)
+
 
 # =========================================================
 # DRAW HELPERS
@@ -556,9 +617,8 @@ def draw_roads():
             -math.degrees(r.angle)
         )
 
-        rect = rotated.get_rect(
-            center=(r.x, r.y)
-        )
+        sx, sy = world_to_screen(r.x, r.y)
+        rect = rotated.get_rect(center=(sx, sy))
 
         screen.blit(rotated, rect)
 
@@ -665,6 +725,9 @@ def draw_ui():
         f"Mode: {mode}",
         f"Speed: {current_speed:.2f}",
         f"Heading: {math.degrees(current_heading):.1f}",
+        f"Traffic Throttle: {current_throttle:.2f}",
+        f"Traffic Brake: {current_brake:.2f}",
+        f"Traffic Steer: {current_steer:.2f}",
         f"Background: {bg_name}",
         f"Name: {scenario_name or '[not set]'}",
         f"Description: {scenario_description or '[not set]'}",
@@ -677,10 +740,16 @@ def draw_ui():
         "RMB = delete",
         "DEL = delete selected",
         "",
-        "N = name",
-        "T = description",
-        "` = save",
-        "L = load latest",
+        "W/S = speed +/-",
+        "A/D = heading +/-",
+        "I/K = throttle +/-",
+        "O/L = brake +/-",
+        "U/J = steer +/-",
+        "",
+        "F2 = name",
+        "F3 = description",
+        "F5 = save",
+        "F9 = load latest",
     ]
 
     for i, t in enumerate(lines):
