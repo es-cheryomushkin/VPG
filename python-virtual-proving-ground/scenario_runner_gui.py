@@ -15,14 +15,15 @@ from sim.draw import draw
 # ==========================
 # CONFIG / GLOBALS
 # ==========================
-logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] %(message)s')
+logging.basicConfig(filename="pvpg.log", level=logging.DEBUG, format='[%(levelname)s] %(message)s')
 pygame.init()
 config = configparser.ConfigParser()
 config.read("config.ini")
 
-# Width and height of the simulation window in pixels
 WIDTH = config.getint("window", "width")
+""" Simulation window width in pixels. """
 HEIGHT = config.getint("window", "height")
+""" Simulation window height in pixels. """
 
 # Creation the main pygame window surface using WIDTH x HEIGHT
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -30,13 +31,15 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 # Clock object used to control game frames
 clock = pygame.time.Clock()
 
-# Frames per second target (how smooth / fast simulation runs)
 FPS = config.getint("window", "fps")
+""" Frames per second target (how smooth / fast simulation runs).
+If previous frame is not drawn, then current frame is not calculated or displayed.
+Caluculation will continue when frame will be displayed. Difference will be considered in dt"""
 
-# Font used for UI rendering
-# None means default system font
 FONT_SIZE = config.getint("ui", "font_size")
+"""Font size used for UI rendering"""
 uiFont = pygame.font.SysFont(None, FONT_SIZE)
+"""Font type used for UI rendering"""
 
 MAX_EPISODE_TIME = 10.0  # seconds per scenario
 
@@ -57,8 +60,8 @@ def main():
     # global episode_time, entities, controlledCar, engine, accumulator, running, scenario_index
     simulationState.scenario_files = load_all_scenarios(args.scenario)
 
-    logging.DEBUG("FILES:", simulationState.scenario_files)
-    logging.DEBUG("INDEX:", simulationState.scenario_index)
+    logging.debug("FILES:", simulationState.scenario_files)
+    logging.debug("INDEX:", simulationState.scenario_index)
 
     running = True
     simulationState.episode_time = 0.0

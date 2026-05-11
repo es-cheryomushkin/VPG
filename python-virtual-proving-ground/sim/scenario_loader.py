@@ -41,11 +41,9 @@ def load_scenario(path):
     roads = []
     background = None
 
-    # =====================================================
-    # MODERN SCENARIO FORMAT
-    # =====================================================
-    if isinstance(data, dict):
 
+    if isinstance(data, dict):
+        # MODERN SCENARIO FORMAT
         name = data.get("name")
         description = data.get("description")
 
@@ -56,20 +54,14 @@ def load_scenario(path):
 
         roads = [Road(r) for r in roads_data]
 
-    # =====================================================
-    # LEGACY FORMAT
-    # =====================================================
     else:
+        # LEGACY FORMAT
         entities_data = data
 
     # =====================================================
     # ENTITIES
     # =====================================================
     entities = [BaseEntity(e) for e in entities_data]
-
-    # =====================================================
-    # EGO CAR
-    # =====================================================
     ego = None
 
     for e in entities:
