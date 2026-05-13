@@ -7,7 +7,7 @@
 ### После клонирования репозитория:
 
 ```bash
-cd virtual-proving-ground
+cd virtual-proving-gr
 godot --headless -s plug.gd install
 godot --headless --import
 ```

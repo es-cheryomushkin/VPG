@@ -1,39 +1,72 @@
 extends Node
+
+## Загружает сценарий из файла используя функцию
+## {@link load_scenario}
 class_name ScenarioLoader
 
-# Путь к папке со сценариями
-const SCENARIOS_PATH = "E:/VPG/python-virtual-proving-ground/scenarios"
-const car_scene = preload("res://scenes/playground/cars.tscn")
+# Путь к папке со сценариями относительно Godot-проекта
+const SCENARIOS_PATH := "../python-virtual-proving-ground/scenarios"
+const CAR_SCENE = preload("res://scenes/playground/cars.tscn")
+const PYTHON_TO_GODOT_SCALE: float = 10.0
 
-# Коэффициент пересчёта координат из Python-проекта в Godot
-const PYTHON_TO_GODOT_SCALE: float = 10
+## Внутренний класс для хранения данных сценария
+class Scenario:
+	## All cars and pedestrians
+	var entities: Array = []
+	## Scenario name
+	var name: String = ""
+	## Scenario description
+	var description: String = ""
 
-## Загружает сценарий по имени файла и создаёт машины в parent_node.
-## Если передан existing_ego, первая машина в сценарии не создаётся,
-## а её параметры передаются в existing_ego.
-## Возвращает словарь с ключами: entities (Array[Car2D]), name, description, ego (Car2D или null).
-static func load_scenario(file_name: String, parent_node: Node, existing_ego: Car2D = null) -> Dictionary:
-	var file_path = SCENARIOS_PATH + "/" + file_name
-	var file = FileAccess.open(file_path, FileAccess.READ)
+	func _init(_entities: Array, _name: String, _description: String):
+		self.entities = _entities
+		self.name = _name
+		self.description = _description
+
+	#@ Target car that is contrrrrrrrolled from keyboard
+	var ego: Node:
+		get:
+			if entities.size() > 0:
+				return entities[0]
+			return null
+
+
+## Возвращает список .json файлов в папке сценариев
+static func list_scenarios() -> PackedStringArray:
+	var dir := DirAccess.open(SCENARIOS_PATH)
+	if dir == null:
+		push_error("Scenarios directory not found: ", SCENARIOS_PATH)
+		return PackedStringArray()
+
+	var result_files := PackedStringArray()
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if file_name.ends_with(".json"):
+			result_files.append(file_name)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	return result_files
+
+## Загружает сценарий и создаёт машины в parent_node.
+## Первая машина становится ego (передаётся в existing_ego, если указан).
+static func load_scenario(file_name: String,
+			parent_node: Node, existing_ego: Car2D = null) -> Scenario:
+	var file := FileAccess.open(SCENARIOS_PATH + "/" + file_name, FileAccess.READ)
 	if file == null:
-		printerr("Failed to open scenario file: ", file_path)
-		return {"entities": [], "name": "", "description": "", "ego": null}
+		push_error("Scenario file not found: ", SCENARIOS_PATH + "/" + file_name)
+		return null
 
-	var json_text = file.get_as_text()
-	file.close()
-
-	var json = JSON.new()
-	var error = json.parse(json_text)
-	if error != OK:
-		printerr("Failed to parse JSON: ", json.get_error_message())
-		return {"entities": [], "name": "", "description": "", "ego": null}
+	var json := JSON.new()
+	if json.parse(file.get_as_text()) != OK:
+		push_error("JSON parse error: ", json.get_error_message())
+		return null
 
 	var data = json.get_data()
-
 	@warning_ignore("shadowed_variable_base_class")
-	var name = ""
-	var description = ""
-	var entities_data = []
+	var name := ""
+	var description := ""
+	var entities_data: Array = []
 
 	if typeof(data) == TYPE_DICTIONARY:
 		name = data.get("name", "")
@@ -42,81 +75,60 @@ static func load_scenario(file_name: String, parent_node: Node, existing_ego: Ca
 	else:
 		entities_data = data
 
-	var entities = []
-	var ego_car = null
-	var first_car = true
+	var entities: Array[Car2D] = []
+	var first_car := true
 
 	for e_data in entities_data:
-		if e_data.get("type") == "car":
-			var pos_x = e_data.get("x", 0) * PYTHON_TO_GODOT_SCALE
-			var pos_y = e_data.get("y", 0) * PYTHON_TO_GODOT_SCALE
-			var heading = e_data.get("heading", 0)
-			var mass = e_data.get("mass", 1500)
-			
-			# Начальная скорость из vx, vy (м/с)
-			var vx = e_data.get("vx", 0.0)
-			var vy = e_data.get("vy", 0.0)
-			var speed = sqrt(vx * vx + vy * vy)
-			var forward = Vector2(cos(heading), sin(heading))
-			var dot = vx * forward.x + vy * forward.y
-			var initial_speed = speed if dot >= 0 else -speed
-			
-			var car: Car2D
-			
-			if first_car and existing_ego != null:
-				car = existing_ego
-				car.position = Vector2(pos_x, pos_y)
-				car.heading_rad = heading
-				car.mass_kg = mass
-				car.speed_ms = initial_speed
-				car.is_player = true
-			else:
-				car = car_scene.instantiate()
-				car.position = Vector2(pos_x, pos_y)
-				car.heading_rad = heading
-				car.mass_kg = mass
-				car.is_player = false
-				car.speed_ms = initial_speed
-				parent_node.add_child(car)
-				car.add_to_group("cars")
-			
-			entities.append(car)
-			if ego_car == null:
-				ego_car = car
-			
-			first_car = false
+		match e_data.get("type", ""):
+			"car":
+				var car: Car2D
+				if first_car and existing_ego:
+					car = existing_ego
+					_apply_to(car, e_data)
+					car.is_player = true
+				else:
+					car = _create_car(e_data, parent_node)
 
-		elif e_data.get("type") == "pedestrian":
-			var vx = e_data.get("vx", 0.0)
-			var vy = e_data.get("vy", 0.0)
-			var pedestrian = car_scene.instantiate()
-			pedestrian.position = Vector2(
-				e_data.get("x", 0) * PYTHON_TO_GODOT_SCALE,
-				e_data.get("y", 0) * PYTHON_TO_GODOT_SCALE
-			)
-			pedestrian.is_player = false
-			pedestrian.is_pedestrian = true
-			pedestrian.mass_kg = e_data.get("mass", 80)
-			pedestrian.speed_ms = sqrt(vx*vx + vy*vy)  # скорость без знака
-			pedestrian.heading_rad = atan2(vy, vx)
-			parent_node.add_child(pedestrian)
-			pedestrian.add_to_group("cars")
+				entities.append(car)
+				first_car = false
 
-	return {"entities": entities, "name": name, "description": description, "ego": ego_car}
+			"pedestrian":
+				var ped := _create_pedestrian(e_data, parent_node)
+				entities.append(ped)
 
-## Возвращает список .json файлов в папке сценариев
-static func list_scenarios() -> PackedStringArray:
-	var files = PackedStringArray()
-	var dir = DirAccess.open(SCENARIOS_PATH)
-	if dir == null:
-		printerr("Failed to open scenarios directory: ", SCENARIOS_PATH)
-		return files
+	return Scenario.new(entities, name, description)
 
-	dir.list_dir_begin()
-	var file_name = dir.get_next()
-	while file_name != "":
-		if file_name.ends_with(".json"):
-			files.append(file_name)
-		file_name = dir.get_next()
-	dir.list_dir_end()
-	return files
+static func _create_car(data: Dictionary, parent: Node) -> Car2D:
+	var car := CAR_SCENE.instantiate() as Car2D
+	_apply_to(car, data)
+	car.is_player = false
+	parent.add_child(car)
+	car.add_to_group("cars")
+	return car
+
+static func _apply_to(car: Car2D, data: Dictionary) -> void:
+	car.position = Vector2(data.x * PYTHON_TO_GODOT_SCALE, data.y * PYTHON_TO_GODOT_SCALE)
+	car.heading_rad = data.get("heading", 0.0)
+	car.mass_kg = data.get("mass", 1500.0)
+	var vx: float = data.get("vx", 0.0)
+	var vy: float = data.get("vy", 0.0)
+	var speed := sqrt(vx * vx + vy * vy)
+	var forward := Vector2(cos(car.heading_rad), sin(car.heading_rad))
+	car.speed_ms = speed if (vx * forward.x + vy * forward.y) >= 0 else -speed
+
+static func _create_pedestrian(data: Dictionary, parent: Node) -> Car2D:
+	var ped := CAR_SCENE.instantiate() as Car2D
+	ped.position = Vector2(data.x * PYTHON_TO_GODOT_SCALE, data.y * PYTHON_TO_GODOT_SCALE)
+	ped.is_player = false
+	ped.is_pedestrian = true
+	ped.mass_kg = data.get("mass", 80.0)
+	var vx: float = data.get("vx", 0.0)
+	var vy: float = data.get("vy", 0.0)
+	ped.speed_ms = sqrt(vx * vx + vy * vy)
+	ped.heading_rad = atan2(vy, vx)
+	parent.add_child(ped)
+	ped.add_to_group("cars")
+	return ped
+
+static func _empty_result() -> Dictionary:
+	return {"entities": [], "name": "", "description": "", "ego": null}

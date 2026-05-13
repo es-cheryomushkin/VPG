@@ -164,3 +164,84 @@ func test_no_steer_at_standstill():
 	Input.action_release("steer_right")
 	assert_almost_eq(car.heading_rad, 0.5, 0.01)
 	await get_tree().create_timer(1.0).timeout
+
+# ТЕСТ 9: Боковое столкновение (проверка боковой скорости)
+func test_side_collision():
+	print("\n[TEST 9] Side Collision — lateral velocity and rotation")
+	var car2 = car_scene.instantiate()
+	world.get_node("Cars").add_child(car2)
+	car2.is_player = false; car2.mass_kg = 1500.0
+	car2.collision_solver = world.find_child("CollisionSolver", true, false)
+	
+	car.heading_rad = 0.0; car.speed_ms = 0.0; car.position = Vector2(400, 400)
+	car2.heading_rad = PI/2; car2.speed_ms = 5.0; car2.position = Vector2(200, -400)
+	
+	var collision_occurred = false
+	var start_time = Time.get_ticks_msec()
+	while Time.get_ticks_msec() - start_time < 5000:
+		await get_tree().physics_frame
+		if not collision_occurred and car.lateral_velocity.length() > 0.1:
+			collision_occurred = true
+			await get_tree().physics_frame; await get_tree().physics_frame
+			break
+	
+	if collision_occurred:
+		print("   Lateral velocity: %.2f m/s, Angular velocity: %.3f rad/s" % [car.lateral_velocity.length(), car.angular_velocity_ms])
+		assert_gt(car.lateral_velocity.length(), 0.1, "Car should have lateral velocity after side impact")
+		assert_gt(abs(car.angular_velocity_ms), 0.01, "Car should rotate after side impact (got %.3f)" % car.angular_velocity_ms)
+		print("   ✓ Side collision physics verified")
+	else:
+		assert_true(collision_occurred, "Cars should collide")
+	
+	await get_tree().create_timer(1.0).timeout
+
+# ТЕСТ 10: Столкновение двух движущихся машин
+func test_moving_collision():
+	print("\n[TEST 10] Moving Collision — both cars in motion")
+	
+	var car2 = car_scene.instantiate()
+	world.get_node("Cars").add_child(car2)
+	car2.is_player = false
+	car2.mass_kg = 1500.0
+	car2.collision_solver = world.find_child("CollisionSolver", true, false)
+	
+	# Игрок едет вправо
+	car.heading_rad = 0.0
+	car.speed_ms = 3.0
+	car.position = Vector2(200, 400)
+	
+	# Вторая машина едет вниз, пересечёт траекторию игрока
+	car2.heading_rad = PI/2  # вниз
+	car2.speed_ms = 10.0
+	car2.position = Vector2(800, -800)  # над игроком, но правее
+	
+	print("   Player: pos=%s, speed=%.1f, heading=%.2f" % [car.position, car.speed_ms, car.heading_rad])
+	print("   Car2:   pos=%s, speed=%.1f, heading=%.2f" % [car2.position, car2.speed_ms, car2.heading_rad])
+	
+	var collision_occurred = false
+	var start_time = Time.get_ticks_msec()
+	
+	while Time.get_ticks_msec() - start_time < 5000:
+		await get_tree().physics_frame
+		
+		# Столкновение = изменилась скорость или появилась боковая
+		if not collision_occurred and (abs(car.speed_ms - 3.0) > 0.1 or car.lateral_velocity.length() > 0.1):
+			collision_occurred = true
+			await get_tree().physics_frame
+			await get_tree().physics_frame
+			break
+	
+	if collision_occurred:
+		print("   Player speed_ms: %.2f → %.2f m/s" % [3.0, car.speed_ms])
+		print("   Player lateral_velocity: (%.2f, %.2f) length=%.2f m/s" % [car.lateral_velocity.x, car.lateral_velocity.y, car.lateral_velocity.length()])
+		print("   Player angular_velocity: %.3f rad/s" % car.angular_velocity_ms)
+		
+		assert_true(abs(car.speed_ms - 3.0) > 0.1 or car.lateral_velocity.length() > 0.1,
+			"Car should change velocity after collision")
+		print("   ✓ Moving collision detected")
+	else:
+		print("   ⚠ No collision detected")
+		print("   Final: Player=%s, Car2=%s" % [car.position, car2.position])
+		assert_true(collision_occurred, "Moving cars should collide")
+	
+	await get_tree().create_timer(1.0).timeout
