@@ -1,7 +1,7 @@
-extends "res://gd-plug/plug.gd"
+extends "res://addons/gd-plug/plug.gd"
 
 func _plugging():
-    # Подключаем GUT
+    # Подключаем GUT (уже есть в addons, но для порядка)
     plug("bitwes/Gut")
 
     # Здесь будут другие зависимости, когда появятся
