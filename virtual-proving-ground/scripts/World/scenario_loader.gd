@@ -7,6 +7,7 @@ class_name ScenarioLoader
 # Путь к папке со сценариями относительно Godot-проекта
 const SCENARIOS_PATH := "../python-virtual-proving-ground/scenarios"
 const CAR_SCENE = preload("res://scenes/playground/cars.tscn")
+const CAR_3D_SCENE = preload("res://scenes/playground/Car3D.tscn") 
 const PYTHON_TO_GODOT_SCALE: float = 10.0
 
 ## Внутренний класс для хранения данных сценария

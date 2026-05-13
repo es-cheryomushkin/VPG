@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://g6131l5x4uo"]
+
+[ext_resource type="Script" uid="uid://c6yh1mkffro8" path="res://scenes/car_3d_visual.gd" id="1_c6bbp"]
+[ext_resource type="PackedScene" uid="uid://g3fsjckkw00r" path="res://addons/srcoder_simplecar/assets/models/sedan-sports.glb" id="2_m7a3q"]
+
+[node name="Car3d" type="Node3D" unique_id=1645571987]
+script = ExtResource("1_c6bbp")
+
+[node name="sedan-sports" parent="." unique_id=1925052563 instance=ExtResource("2_m7a3q")]

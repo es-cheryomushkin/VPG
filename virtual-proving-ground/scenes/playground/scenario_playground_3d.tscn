@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://438r46qc4i42"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_vks6h"]
+
+[sub_resource type="Sky" id="Sky_oap1s"]
+sky_material = SubResource("ProceduralSkyMaterial_vks6h")
+
+[sub_resource type="Environment" id="Environment_typ8i"]
+background_mode = 2
+sky = SubResource("Sky_oap1s")
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_v4omr"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_fobh2"]
+size = Vector3(10, 1, 10)
+
+[node name="ScenarioPlayground3d" type="Node3D" unique_id=4403234]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=837584825]
+environment = SubResource("Environment_typ8i")
+camera_attributes = SubResource("CameraAttributesPractical_v4omr")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment" unique_id=1284039725]
+transform = Transform3D(0.8660254, -0.24999999, -0.4330127, 0.5, 0.43301266, 0.75, 0, -0.8660254, 0.49999997, 0, 65.75229, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WorldEnvironment" unique_id=603192767]
+transform = Transform3D(100.835655, 0, 0, 0, 1.4974034, 0, 0, 0, 124.06043, 0, -2.2076416, 0)
+mesh = SubResource("BoxMesh_fobh2")
+
+[node name="Camera3D" type="Camera3D" parent="WorldEnvironment/MeshInstance3D" unique_id=611577754]
+transform = Transform3D(0.009917127, 0, 0, 0, 0.45498216, 0.48885423, 0, -0.005900447, 0.0054916125, 0.01608257, 226.36967, 5.4411097)
+current = true
+
+[node name="Cars3D" type="Node3D" parent="." unique_id=692025569]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)
