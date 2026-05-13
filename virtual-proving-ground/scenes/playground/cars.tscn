@@ -1,17 +1,19 @@
 [gd_scene format=3 uid="uid://cm3ml58sh72ap"]
 
-[ext_resource type="Script" uid="uid://c2uc18updv7dl" path="res://scripts/Player/car.gd" id="1_l1lfi"]
+[ext_resource type="Script" uid="uid://bbvtqe4gigeph" path="res://scripts/Player/car.gd" id="1_l1lfi"]
 [ext_resource type="Texture2D" uid="uid://bd052c38dt8je" path="res://assets/vehicles/Porsche 911 Carrera 1998.png" id="2_xhvr6"]
+[ext_resource type="Script" uid="uid://do7ox8fkioft7" path="res://scripts/Player/ai_car_controller.gd" id="3_xhvr6"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_51ujy"]
 radius = 11.0
 height = 82.0
 
-[node name="Car2" type="CharacterBody2D" unique_id=1486173550]
+[node name="Car2" type="CharacterBody2D" unique_id=1486173550 node_paths=PackedStringArray("ai_controller")]
 collision_layer = 2
 collision_mask = 2
 script = ExtResource("1_l1lfi")
 is_player = false
+ai_controller = NodePath("AIController")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=402529218]
 rotation = 3.1415927
@@ -26,3 +28,6 @@ zoom = Vector2(0.5, 0.5)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1611043557]
 scale = Vector2(21.409416, 2.5572147)
 shape = SubResource("CapsuleShape2D_51ujy")
+
+[node name="AIController" type="Node2D" parent="." unique_id=1393321408]
+script = ExtResource("3_xhvr6")
