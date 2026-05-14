@@ -72,7 +72,7 @@ func _apply_pedestrian_setup():
 	if sprite:
 		sprite.region_enabled = false
 		sprite.scale = Vector2.ONE
-		var path := "res://assets/pedestrians/ped4.png"
+		var path := "res://assets/pedestrians/person.png"
 		if FileAccess.file_exists(path):
 			sprite.texture = load(path)
 	
